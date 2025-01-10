@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soziale Spiel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('park.png');
+        }
+
+        #gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-image: url('park.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+        .img[data-player] {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 200px;
+            height: 200px;
+            display: block;
+            background-color: red;  /* To make sure we can see the image area */
+        }
+
+        .player {
+    position: absolute;
+    width: 200px; /* Adjust as needed */
+    height: 200px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer; /* Make players look clickable */
+    border: 2px solid transparent; /* Optional hover effect */
+    transition: border-color 0.3s;
+}
+
+
+
+
+        .player,
+        #animationContainer img{
+            width: 300px;
+            height: 300px;
+        }
+
+
+        .selected-player {
+            font-weight: bold;
+
+        }
+
+        #instructionContainer {
+            display: flex;
+            position: absolute;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            text-align: center;
+        }
+
+        .player-animation {
+    position: absolute;
+    width: 200px; /* Breite der Videos */
+    height: auto;
+    z-index: 10000;
+    display: block; /* Versteckt die Videos standardmäßig */
+    top: 0; /* Justiere die Position */
+    left: 0; /* Justiere die Position */
+    transform: translate(-50%, -50%); /* Zentriere das Video */
+}
+
+
+
+        #playerOptionsContainer {
+        display: flex;
+        flex-wrap: wrap; /* Allow multiple rows if necessary */
+        justify-content: center; /* Center the player options */
+        gap: 10px; /* Space between player option images */
+        width: 50px;
+        height: 50px;
+    }
+
+  
+        #rewardImg, #punishImg {
+        position: absolute;
+        z-index: 9999; /* Ensure the images are on top */
+        width: 300px; /* Or whatever size fits */
+        height: 300px;
+        display: block; /* Initially hidden */
+        }
+
+
+        #page1 {
+            display: hidden;
+        }
+
+        #page2, #page3, #page4, #page5, #page6, #page7 {
+            display: hidden;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            display: hidden;
+        }
+
+        .button:not(.hidden) {
+            display: block; /* Show buttons if not hidden */
+        }
+
+        .instruction-content {
+            margin-bottom: 20px;
+            display:none
+        }
+
+        .instruction-content:not(.hidden) {
+            display: block; /* Show content if not hidden */
+        }
+
+        .choose-player {
+        position: absolute;
+        top: calc(50% + 150px); /* Adjusted for better positioning */
+        left: 50%;
+        transform: translateX(-50%);
+        display: none; /* Will be shown when needed */
+        text-align: center;
+        z-index: 20; /* Ensure it's above other elements */
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+        #choosePlayerContainer {
+            display: block;
+        }
+
+
+        .video {
+            width: 80%;
+            height: auto;
+        }
+
+        #player1 {
+            width: 300px;
+            height: 300px;
+            background-image: url('player1.png');
+            display: none;
+            visibility: visible;
+        }
+
+        #player2, #player3, #player4, #player5, #player6 {
+            width: 300px;
+            height: 300px;
+            display: block;
+            visibility: visible;
+        }
+
+        #player2 {
+            background-image: url('player2.png');
+            display: none;
+        }
+
+        #player3 {
+            background-image: url('player3.png');
+            display: none;
+        }
+
+        #player4 {
+            background-image: url('player4.png');
+            display:none;
+        }
+
+        #player5 {
+            background-image: url('player5.png');
+        display: none;
+        }
+
+        #player6 {
+            background-image: url('player6.png');
+            display: none;
+        }
+
+        .img {
+            width:200px;
+            height:200px;
+            display: block;
+            visibility: visible;
+            position:relative;
+            z-index:10;
+            border: 2px solid red;
+        }
+
+        #ball {
+            width: 80px;
+            height: 80px;
+            background-image: url('ball.png');
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: block;
+            opacity: 1;
+            transition: all 0.5s ease, opacity 0.3s ease;
+        }
+        #speechBubble {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #333;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 8px;
+    max-width: 200px;
+    text-align: center;
+    display: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1002;
+}
+
+
+
+
+.blink-animation {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+
+        .sliderContainer {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #startGameButtonPage7 {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            display: block; /* Hidden by default, shown when on page 7 */
+        }
+
+        #availablePlayers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px; /* Abstand zwischen Bildern */
+            justify-content: center;
+}
+
+    .player-image {
+        width: 150px;
+        height: auto;
+        cursor: pointer;
+        border: 2px solid transparent; /* Transparenter Rahmen für Auswahlzustand */
+        transition: border-color 0.3s;
+        display: flex;
+}
+
+  
+
+    #moodContainer {
+            position: absolute; /* Overlay it on top of gameContainer */
+            z-index: 10; /* Higher value to ensure it appears above */
+            background: white; /* Optional: to ensure it's readable */
+            padding: 20px; /* Optional: some padding for aesthetics */
+            border-radius: 8px; /* Optional: round corners */
+            display: none; /* Initially hidden */
+}
+
+#feedbackImageContainer {
+    position: absolute;
+    z-index: 2001; /* Ensure it's on top of everything */
+    top: 0;
+    left: 0;
+    width: 100%; /* Take full width */
+    height: 100%; /* Take full height */
+    pointer-events: none; /* Prevent interaction */
+    
+}
+
+#feedbackImageContainer img{
+            position: absolute; /* Overlay on gameContainer */
+            z-index: 2002; /* Ensure it appears above other elements */
+            top: 20px;
+            left: 20px;
+            max-width: 100%;
+            max-height: 100%;
+}
+
+#animationContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000; /* Ensure it's above other elements */
+    display: block; /* Ensure visibility */
+    pointer-events: none; /* Allow interactions with other elements below */
+}
+
+
+#animationContainer img {
+    position: absolute;
+    z-index: 1000; /* Ensure frames are on top */
+    display: none; /* Hide initially */
+    pointer-events: none; /* Allow interactions to pass through */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+
+#selfPlayerContainer {
+    position: absolute;
+    width: 200px; /* Default, will be overridden dynamically */
+    height: 200px; /* Default, will be overridden dynamically */
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: none; /* Hidden initially */
+    pointer-events: none; /* Prevent accidental interaction */
+    z-index: 1000; /* Ensure it appears above other elements */
+    transition: opacity 0.3s ease; /* Smooth transition for blending */
+}
+
+
+
+.selfPlayer {
+    position: absolute;
+    top: 50%; /* Center within the container */
+    left: 50%; /* Center within the container */
+    transition: opacity 0.3s ease;
+    transform: translate(-50%, -50%);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+
+.player-left {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.player-right {
+    position: absolute;
+    top: 20%;
+    right: 20%;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+        
+
+    </style>
+</head>
+
+<body>
+
+    <div id="instructionContainer" class = "instructionContainer">
+        <div class="instruction-content hidden" id="page1">
+            <h1>Willkommen zum sozialen Spiel</h1>
+            <p>Bevor es losgeht, zeige ich dir, wie das Spiel funktioniert.<br>Bitte achte darauf, dass dein Ton eingeschalten ist.<br>Los geht's!</p>
+            <audio id="audio1" src="audio1.m4a"></audio>
+        </div>
+
+        <button id="nextButton1" class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page2">
+            <h2>Wähle deine Spieler</h2>
+            <div class="availablePlayers">
+                <p>Bitte suche deine Spieler aus. Erst musst ddu enstcheiden wer du sein möchtest.<br> Dann such die anderen zwei Spieler aus.</p>
+                <div id="availablePlayers">
+                    <img src="player1.png" data-player="player1" class="player-image" alt="Spieler 1">
+                    <img src="player2.png" data-player="player2" class="player-image" alt="Spieler 2">
+                    <img src="player3.png" data-player="player3" class="player-image" alt="Spieler 3">
+                    <img src="player4.png" data-player="player4" class="player-image" alt="Spieler 4">
+                    <img src="player5.png" data-player="player5" class="player-image" alt="Spieler 5">
+                    <img src="player6.png" data-player="player6" class="player-image" alt="Spieler 6">
+                </div>
+                <div id="chosenPlayers">
+                    <p id="chosenSelf">Deine Wahl: </p>
+                    <p id="chosenOthers">Andere Spieler: </p>
+                </div>
+            </div>
+        </div>
+        <button id="nextButton2" class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page3">
+            <h2>Instruktionen</h2>
+            <video id="video1" src="video1.mp4" controls></video>
+        </div>
+
+        <button id="nextButton3" class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page4">
+            <h2>Instruktionen</h2>
+            <video id="video2" src="video2.mp4" controls></video>
+        </div>
+
+        <button id="nextButton4"class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page5">
+            <h2>Instruktionen</h2>
+            <video id="video3" src="video3.mp4" controls></video>
+        </div>
+
+        <button id="nextButton5"class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page6">
+            <h1>Zusammenfassung </h1>
+            <p>Puh, das waren viele Informationen.<br>Hier noch einmal alles zusammengefasst:.<br>Du triffst zwei Leute im Park und fragst sie ob du mitspielen darfst. Du musst dich entscheiden, welchen der beiden Spieler du fragst. <br> Entweder du bekommst eine positive Antwort und bekommst den Ball oder wirst abgelehnt und aus dem Spiel ausgeschlossen<br>Während des Spiels wirst du immer wieder gefragt wie es dir geht und wie aufgeregt du bist.</p>
+            <audio id="audio2" src="audio2.m4a"></audio>
+        </div>
+
+        <button id="nextButton6"class="button hidden">Weiter</button>
+
+    <div class="instruction-content hidden" id="page7">
+        <h1>Fragen?</h1>
+        <p>Wenn noch etwas unklar ist, dann frag gerne deinen Versuchsleiter.<br>Ansonsten viel Spaß beim Spielen!</p>
+        <audio id="audio3" src="audio3.m4a"></audio>
+    </div>
+
+    <button id="startGameButtonPage7" class="button hidden">Spiel starten</button>
+</div>
+    </div>
+
+    <div id="gameContainer" class="gameContainer" style = "display:none">
+        <div id="players">
+        <div id="player1" class="player"></div>
+        <div id="player2" class="player"></div>
+        <div id="player3" class="player"></div>
+        <div id="player4" class="player"></div>
+        <div id="player5" class="player"></div>
+        <div id="player6" class="player"></div>
+        <div id="selfPlayerContainer"></div>
+        <div id="selfPlayer" class="player"></div>
+        <div id="ball"></div>
+        <div id="speechBubble"></div>
+    </div>
+</div>
+
+<div id="metaQuestionContainer" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 8px;">
+    <p>Willst du weiterspielen?</p>
+    <button id="continueYes">Ja</button>
+    <button id="continueNo">Nein</button>
+</div>
+
+   
+    <div class="choose-player" style="position: absolute; top: calc(50% + 150px); left: 50%; transform: translateX(-50%); display: none;">
+        <p>Entscheide dich, welchen der Spieler du ansprechen möchtest:</p>
+        <div id="playerOptionsContainer">
+            <img src="player1.png" data-player="player1" alt="Player 1" />
+            <img src="player2.png" data-player="player2" alt="Player 2" />
+            <img src="player3.png" data-player="player3" alt="Player 3" />
+            <img src="player4.png" data-player="player4" alt="Player 4" />
+            <img src="player5.png" data-player="player5" alt="Player 5" />
+            <img src="player6.png" data-player="player6" alt="Player 6" />
+        </div>
+    </div>
+
+ 
+    
+
+    <div class="sliderContainer" id="moodContainer">
+        <label for="mood">Wie geht es dir gerade? (0-100):</label>
+        <input type="range" id="mood" name="mood" min="0" max="100">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Sehr schlecht (-50)</span>
+            <span>Sehr gut (50)</span>
+        </div>
+        <label for="excitement">Wie aufgeregt bist du gerade? (0-100):</label>
+        <input type="range" id="excitement" name="excitement" min="0" max="100">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Überhaupt nicht (0)</span>
+            <span>Sehr (100)</span>
+        </div>
+        <button id="submitRatings">Abschicken</button>
+    </div>
+
+
+
+    <audio id="rewardAudio2" src="player2.m4a"></audio>
+    <audio id="punishAudio" src="player3.m4a"></audio>
+
+    <!-- Feedback Image Container -->
+    <div id="feedbackImageContainer" style="display: block; position: absolute;">
+        <img id="player1_reward" data-player="player1" style="display:none" src="player1_reward.png" alt="rewardImg"></img>
+        <img id="player1_punish" data-player="player1"style="display: none" src="player1_punish.png" alt="punishImg"></img>
+        <img id="player2_reward" data-player="player2"style="display: none" src="player2_reward.png" alt="rewardImg"></img>
+        <img id="player2_punish" data-player="player2"style="display: none" src="player2_punish.png" alt="punishImg"></img>
+        <img id="player3_reward" data-player="player3"style="display: none" src="player3_reward.png" alt="rewardImg"></img>
+        <img id="player3_punish" data-player="player3"style="display: none" src="player3_punish.png" alt="punishImg"></img>
+        <img id="player4_reward" data-player="player4"style="display: none" src="player4_reward.png" alt="rewardImg"></img>
+        <img id="player4_punish" data-player="player4"style="display: none" src="player4_punish.png" alt="punishImg"></img>
+        <img id="player5_reward" data-player="player5"style="display: none" src="player5_reward.png" alt="rewardImg"></img>
+        <img id="player5_punish" data-player="player5"style="display: none" src="player5_punish.png" alt="punishImg"></img>
+        <img id="player6_reward" data-player="player6"style="display: none" src="player6_reward.png" alt="rewardImg"></img>
+        <img id="player6_punish" data-player="player6"style="display: none" src="player6_punish.png" alt="punishImg"></img>
+    </div>
+
+          <!-- Animation Image Container -->
+<div id="animationContainer">
+    <img id="player1_throw_left_1" src="player1_throw_left_1.png" alt="Player 1 Throw Left Frame 1">
+    <img id="player1_throw_left_2" src="player1_throw_left_2.png"  alt="Player 1 Throw Left Frame 2">
+    <img id="player1_throw_left_3" src="player1_throw_left_3.png" alt="Player 1 Throw Left Frame 3">
+    <img id="player1_throw_left_4" src="player1_throw_left_4.png" alt="Player 1 Throw Left Frame 4">
+    <img id="player1_throw_right_1" src="player1_throw_right_1.png" alt="Player 1 Throw Right Frame 1">
+    <img id="player1_throw_right_2" src="player1_throw_right_2.png" alt="Player 1 Throw Right Frame 2">
+    <img id="player1_throw_right_3" src="player1_throw_right_3.png"  alt="Player 1 Throw Right Frame 3">
+    <img id="player1_throw_right_4" src="player1_throw_right_4.png"  alt="Player 1 Throw Right Frame 4">
+    <img id="player2_throw_left_1" src="player2_throw_left_1.png"  alt="Player 2 Throw Left Frame 1">
+    <img id="player2_throw_left_2" src="player2_throw_left_2.png"  alt="Player 2 Throw Left Frame 2">
+    <img id="player2_throw_left_3" src="player2_throw_left_3.png"  alt="Player 2 Throw Left Frame 3">
+    <img id="player2_throw_right_1" src="player2_throw_right_1.png"  alt="Player 2 Throw Right Frame 1">
+    <img id="player2_throw_right_2" src="player2_throw_right_2.png"  alt="Player 2 Throw Right Frame 2">
+    <img id="player2_throw_right_3" src="player2_throw_right_3.png" alt="Player 2 Throw Right Frame 3">
+    <img id="player3_throw_left_1" src="player3_throw_left_1.png"  alt="Player 3 Throw Left Frame 1">
+    <img id="player3_throw_left_2" src="player3_throw_left_2.png"  alt="Player 3 Throw Left Frame 2">
+    <img id="player3_throw_left_3" src="player3_throw_left_3.png"  alt="Player 3 Throw Left Frame 3">
+    <img id="player3_throw_left_4" src="player3_throw_left_4.png"  alt="Player 3 Throw Left Frame 4">
+    <img id="player3_throw_right_1" src="player3_throw_right_1.png"  alt="Player 3 Throw Right Frame 1">
+    <img id="player3_throw_right_2" src="player3_throw_right_2.png"  alt="Player 3 Throw Right Frame 2">
+    <img id="player3_throw_right_3" src="player3_throw_right_3.png"  alt="Player 3 Throw Right Frame 3">
+    <img id="player3_throw_right_4" src="player3_throw_right_4.png"  alt="Player 3 Throw Right Frame 4">
+    <img id="player4_throw_left_1" src="player4_throw_left_1.png" style="display: none;" alt="Player 4 Throw Left Frame 1">
+    <img id="player4_throw_left_2" src="player4_throw_left_2.png" style="display: none;" alt="Player 4 Throw Left Frame 2">
+    <img id="player4_throw_left_3" src="player4_throw_left_3.png" style="display: none;" alt="Player 4 Throw Left Frame 3">
+    <img id="player4_throw_left_4" src="player4_throw_left_4.png" style="display: none;" alt="Player 4 Throw Left Frame 4">
+    <img id="player4_throw_right_1" src="player4_throw_right_1.png" style="display: none;" alt="Player 4 Throw Right Frame 1">
+    <img id="player4_throw_right_2" src="player4_throw_right_2.png" style="display: none;" alt="Player 4 Throw Right Frame 2">
+    <img id="player4_throw_right_3" src="player4_throw_right_3.png" style="display: none;" alt="Player 4 Throw Right Frame 3">
+    <img id="player4_throw_right_4" src="player4_throw_right_4.png" style="display: none;" alt="Player 4 Throw Right Frame 4">
+    <img id="player5_throw_left_1" src="player5_throw_left_1.png" style="display: none;" alt="Player 5 Throw Left Frame 1">
+    <img id="player5_throw_left_2" src="player5_throw_left_2.png" style="display: none;" alt="Player 5 Throw Left Frame 2">
+    <img id="player5_throw_left_3" src="player5_throw_left_3.png" style="display: none;" alt="Player 5 Throw Left Frame 3">
+    <img id="player5_throw_left_4" src="player5_throw_left_4.png" style="display: none;" alt="Player 5 Throw Left Frame 4">
+    <img id="player5_throw_right_1" src="player5_throw_right_1.png" style="display: none;" alt="Player 5 Throw Right Frame 1">
+    <img id="player5_throw_right_2" src="player5_throw_right_2.png" style="display: none;" alt="Player 5 Throw Right Frame 2">
+    <img id="player5_throw_right_3" src="player5_throw_right_3.png" style="display: none;" alt="Player 5 Throw Right Frame 3">
+    <img id="player5_throw_right_4" src="player5_throw_right_4.png" style="display: none;" alt="Player 5 Throw Right Frame 4">
+    <img id="player6_throw_left_1" src="player6_throw_left_1.png" style="display: none;" alt="Player 6 Throw Left Frame 1">
+    <img id="player6_throw_left_2" src="player6_throw_left_2.png" style="display: none;" alt="Player 6 Throw Left Frame 2">
+    <img id="player6_throw_left_3" src="player6_throw_left_3.png" style="display: none;" alt="Player 6 Throw Left Frame 3">
+    <img id="player6_throw_left_4" src="player6_throw_left_4.png" style="display: none;" alt="Player 6 Throw Left Frame 4">
+    <img id="player6_throw_right_1" src="player6_throw_right_1.png" style="display: none;" alt="Player 6 Throw Right Frame 1">
+    <img id="player6_throw_right_2" src="player6_throw_right_2.png" style="display: none;" alt="Player 6 Throw Right Frame 2">
+    <img id="player6_throw_right_3" src="player6_throw_right_3.png" style="display: none;" alt="Player 6 Throw Right Frame 3">
+    <img id="player6_throw_right_4" src="player6_throw_right_4.png" style="display: none;" alt="Player 6 Throw Right Frame 4">
+    </div>
+
+    <div id="speechBubble" class="speech-bubble"></div>
+
+        
+    <script>
+
+
+    const instructionContainer = document.querySelector('#instructionContainer');
+    const gameContainer = document.querySelector('#gameContainer');
+    const moodContainer = document.querySelector('#moodContainer');
+    const feedbackImageContainer = document.querySelector('#feedbackImageContainer')
+    const choosePlayerContainer = document.querySelector('.choose-player');
+    const availablePlayersButtons = document.querySelectorAll('#availablePlayers button');
+    const chosenSelfElement = document.getElementById('chosenSelf');
+    const chosenOthersElement = document.getElementById('chosenOthers');
+    const rewardAudio2 = document.getElementById('rewardAudio2');
+    const punishAudio = document.getElementById('punishAudio');
+    const nextButton = document.getElementById('nextButton');
+    const speechBubble = document.getElementById('speechBubble');
+    const sliderContainer = document.getElementById('sliderContainer');
+    const startGameButtonPage7 = document.getElementById('startGameButtonPage7');
+    const maxOthers = 2;
+    const totalPages = 7;
+    const maxothers = 2;
+    const ball = document.getElementById('ball');
+    let selectedSelf = null;
+    let selectedOthers = [];
+    let chosenPlayers = { self: null, others: [] };
+    let currentPage = 1;
+    let rewardProbabilityPlayer2 = 0.5;
+    let rewardProbabilityPlayer3 = 0.5;
+    let rewardingPlayer;
+    let punishingPlayer;
+    let gameStarted = false;
+    let choiceTimeout;
+    let currentTrial = 0;
+    const animationVideo = document.getElementById('animation-video');
+    const totalTrials = 144; 
+    const minRoundsBeforeMoodCheck = 3;
+    const maxRoundsBeforeMoodCheck = 6;
+    let roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+    let instructionsCompleted = false;
+    let playerId= "player1"; "player2"; "player3"; "player4"; "player5"; "player6";
+    let playerImg=document.querySelector(`img[data-player="${playerId}"]`);
+    let moodCheckEnabled = true; // Initialize moodCheckEnabled as true
+    let gamePaused = false; 
+    let selectedPlayers = [];
+    let isAnimationPlaying = false;
+let leftPlayerRewarding = true; // Starts as rewarding
+let rightPlayerRewarding = true; // Starts as rewarding
+const leftPlayerChangeInterval = 12;
+const rightPlayerChangeInterval = 24;
+
+
+    const trialsPerPositionChange = 10; // Change positions every 10 trials
+const frameDuration = 100; // Duration of each animation frame in milliseconds
+const tossDuration = 2500; // Ball flight duration in milliseconds
+const pauseAfterCatch = 10; // Pause after catch animation in milliseconds
+const pauseAfterThrow = 100; // Pause before the next throw in milliseconds
+
+let tossCount = 0;
+let maxTossesBeforeChoice = getRandomInt(3, 6);
+
+let ballTossInterval;
+let rewardProbabilities = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+let roles = {
+    rewardingPlayers: [],
+    punishingPlayers:[]
+};
+
+    document.addEventListener('DOMContentLoaded', () => { 
+        showPage(currentPage);
+    });
+
+    const playerData = {
+    player1: { img: 'player1.png', rewardImg: 'player1_reward.png', punishImg: 'player1_punish.png' },
+    player2: { img: 'player2.png', rewardImg: 'player2_reward.png', punishImg: 'player2_punish.png' },
+    player3: { img: 'player3.png', rewardImg: 'player3_reward.png', punishImg: 'player3_punish.png' },
+    player4: { img: 'player4.png', rewardImg: 'player4_reward.png', punishImg: 'player4_punish.png' },
+    player5: { img: 'player5.png', rewardImg: 'player5_reward.png', punishImg: 'player5_punish.png' },
+    player6: { img: 'player6.png', rewardImg: 'player6_reward.png', punishImg: 'player6_punish.png' }
+};
+
+
+const playerIds = Object.keys(playerData);
+
+
+// Function to show instructions and then player options
+function showPage(pageNumber) {
+    for (let i = 1; i <= totalPages; i++) {
+        const page = document.getElementById(`page${i}`);
+        const button = document.getElementById(`nextButton${i}`);
+        
+        if (i === pageNumber) {
+            page.classList.remove('hidden');
+            if (i < totalPages) {
+                button.classList.remove('hidden');
+            } else if (i === totalPages) {
+                instructionsCompleted = true;
+                // Show the player selection after the last instruction page
+                document.getElementById('playerOptionsContainer').style.display = 'flex';
+            }
+        } else {
+            page.classList.add('hidden');
+            if (button) button.classList.add('hidden');
+        }
+    }
+}
+
+// Event listener for "Weiter" buttons to navigate pages
+for (let i = 1; i <= totalPages; i++) {
+    const button = document.getElementById(`nextButton${i}`);
+    if (button) {
+        button.addEventListener('click', () => {
+            currentPage++;
+            showPage(currentPage);
+        });
+    }
+}
+
+document.querySelectorAll('#availablePlayers .player-image').forEach(image => {
+    image.addEventListener('click', function (event) {
+        const playerId = event.currentTarget.getAttribute('data-player');
+        console.log('Clicked Player ID:', playerId);
+
+        // Select the self-player if not already selected
+        if (!selectedSelf) {
+            selectedSelf = playerId;
+            chosenSelfElement.textContent = `Deine Wahl: ${selectedSelf}`;
+            selectedPlayers.push(playerId); // Add to the selected players
+            document.getElementById(playerId).style.display = 'block'; // Show player image
+            console.log(`Selected self-player: ${selectedSelf}`);
+        } 
+        // Select other players and ensure they are not the self-player
+        else if (selectedOthers.length < maxOthers && playerId !== selectedSelf && !selectedOthers.includes(playerId)) {
+            selectedOthers.push(playerId);
+            chosenOthersElement.textContent = `Andere Spieler: ${selectedOthers.join(', ')}`;
+            selectedPlayers.push(playerId); // Add to the selected players
+            document.getElementById(playerId).style.display = 'block'; // Show player image
+            console.log(`Selected others: ${selectedOthers}`);
+        } else {
+            console.warn(`Player ${playerId} is already selected or is the self-player.`);
+        }
+
+        // Update positions dynamically after selection
+        if (selectedSelf && selectedOthers.length === 2) {
+            arrangeSelectedPlayersRandomly(); // Arrange players once the selection is complete
+        }
+    });
+});
+
+// Event listener for Start Game button
+startGameButtonPage7.addEventListener('click', startGame);
+
+ // Hide feedback images initially
+ document.querySelectorAll('#feedbackImageContainer img').forEach(img => {
+        img.style.display = 'none'; // Ensure all feedback images are hidden initially
+    });
+
+// Ensure 'playerPositions' is declared first at the very top
+const playerPositions = {}; // This needs to be available globally
+
+// Function to shuffle an array (for randomness)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+}
+
+
+
+const playerPositionLabels = {}; // Store player positions as labels (e.g., topLeft, topRight)
+function arrangeSelectedPlayersRandomly() {
+    const gameContainer = document.getElementById('gameContainer');
+    const gameWidth = gameContainer.clientWidth;
+    const gameHeight = gameContainer.clientHeight;
+
+    const positions = {
+        left: { x: gameWidth * 0.2, y: gameHeight * 0.3 },
+        right: { x: gameWidth * 0.8, y: gameHeight * 0.3 },
+        center: { x: gameWidth * 0.5, y: gameHeight * 0.7 }
+    };
+
+    const [leftPlayer, rightPlayer] = selectedOthers;
+    const selfPlayer = selectedSelf;
+
+    if (selfPlayer) {
+        setPosition(selfPlayer, positions.center, `${selfPlayer}_self_back.png`);
+    }
+    if (leftPlayer) {
+        setPosition(leftPlayer, positions.left);
+    }
+    if (rightPlayer) {
+        setPosition(rightPlayer, positions.right);
+    }
+
+    console.log("Player positions:", playerPositions); // Debugging positions
+}
+
+function setPosition(playerId, position, image = null) {
+    const playerElement = document.getElementById(playerId);
+    if (playerElement) {
+        playerElement.style.position = 'absolute';
+        playerElement.style.left = `${position.x}px`;
+        playerElement.style.top = `${position.y}px`;
+        playerElement.style.display = 'block';
+
+        if (image) {
+            playerElement.style.backgroundImage = `url('${image}')`;
+            playerElement.style.backgroundSize = 'contain';
+            playerElement.style.backgroundRepeat = 'no-repeat';
+        }
+
+        // Save position globally for animations
+        playerPositions[playerId] = position;
+        console.log(`Positioned ${playerId} at (${position.x}, ${position.y})`);
+    } else {
+        console.error(`Player element not found for ${playerId}`);
+    }
+}
+
+
+// Shuffle left and right players after a defined number of trials
+function shufflePositions() {
+    if (selectedOthers.length < 2) return;
+
+    // Swap left and right players
+    [selectedOthers[0], selectedOthers[1]] = [selectedOthers[1], selectedOthers[0]];
+    arrangeSelectedPlayers(); // Rearrange positions
+}
+
+
+function getPlayerPosition(playerId) {
+    const playerElement = document.getElementById(playerId);
+    if (playerElement) {
+        const rect = playerElement.getBoundingClientRect();
+        return {
+            x: rect.left + window.scrollX,
+            y: rect.top + window.scrollY
+        };
+    }
+    console.error(`Player element not found for ${playerId}`);
+    return null;
+}
+
+let currentPlayerIndex = 0; // Initialize it to 0 or another value
+
+
+// Ensure `selectedOthers` has exactly two players before starting the game
+function startGame() {
+    instructionContainer.style.display = 'none';
+    gameContainer.style.display = 'flex';
+
+    // Hide the meta question at the start of the game
+    const metaQuestionContainer = document.getElementById('metaQuestionContainer');
+    metaQuestionContainer.style.display = 'none';
+
+    // Validate selected players
+    if (!selectedSelf || selectedOthers.length !== 2) {
+        console.error(`Error: selectedSelf is ${selectedSelf} and selectedOthers are ${selectedOthers}. Ensure exactly two players are selected as others.`);
+        return;
+    }
+
+    console.log("Starting game with self-player:", selectedSelf);
+    console.log("Selected other players:", selectedOthers);
+
+    arrangeSelectedPlayersRandomly();
+    assignRewardingAndPunishingPlayers();
+    currentPlayerId = selectedOthers[0]; // Start with the first other player
+    lastPlayerId = selectedOthers[1]; // Set the other player for alternation
+    startBallToss();
+    promptMoodCheck();
+    roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+}
+
+
+
+
+// Function to generate a random number between min and max, inclusive
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Function to reset toss counter and set a new threshold for the next prompt
+function resetTossCounter() {
+    tossCount = 0;  // Reset the toss counter
+    maxTossesBeforePrompt = getRandomInt(3, 6);  // Set a new random threshold
+}
+// Initialize current and last player for alternating tosses
+let currentPlayerId;
+let lastPlayerId;
+
+
+let maxTossesBeforeMeta = getRandomInt(3, 6); // Random toss count between 3 and 6
+
+function startBallToss() {
+    if (gamePaused || isAnimationPlaying) return;
+
+    ballTossInterval = setInterval(() => {
+        if (tossCount >= maxTossesBeforeMeta) {
+            clearInterval(ballTossInterval);
+
+            // Reset toss counter and set a new random toss limit
+            tossCount = 0;
+            maxTossesBeforeMeta = getRandomInt(3, 6);
+
+            showMetaQuestion();
+            return;
+        }
+
+           
+        //Toss ball to next player
+        const nextPlayer = selectedOthers.find(player => player !== currentPlayerId);
+
+        if (nextPlayer) {
+            tossBallToPlayer(currentPlayerId, nextPlayer);
+            currentPlayerId = nextPlayer;
+            tossCount++;
+        } else {
+            console.error("Next player not found.");
+        }
+    }, tossDuration + frameDuration * 4);
+}
+
+
+
+
+function selectRandomPlayer(players) {
+    if (!players || players.length === 0) {
+        console.error("No players available for selection.");
+        return null;
+    }
+    const randomIndex = Math.floor(Math.random() * players.length);
+    const selectedPlayer = players[randomIndex];
+    console.log("Selected next player:", selectedPlayer);
+    return selectedPlayer;
+}
+
+
+const centerDuration = 1000; // Duration for moving ball to the center before prompt
+function tossBallToPlayer(fromPlayerId, toPlayerId, callback) {
+    const fromPlayerPosition = playerPositions[fromPlayerId];
+    const toPlayerPosition = playerPositions[toPlayerId];
+    const ball = document.getElementById('ball');
+
+    if (!fromPlayerPosition || !toPlayerPosition) {
+        console.error(`Invalid positions for ${fromPlayerId} or ${toPlayerId}`);
+        return;
+    }
+
+    console.log(`Tossing ball from ${fromPlayerId} to ${toPlayerId}`);
+
+    const directionTo = getDirection(fromPlayerPosition.x, toPlayerPosition.x);
+    playThrowAnimation(fromPlayerId, directionTo, () => {
+        console.log(`Throw animation completed for ${fromPlayerId}`);
+
+        animateBall(
+            fromPlayerPosition.x,
+            fromPlayerPosition.y,
+            toPlayerPosition.x,
+            toPlayerPosition.y,
+            () => {
+                console.log(`Ball reached ${toPlayerId}`);
+
+                const directionFrom = getDirection(toPlayerPosition.x, fromPlayerPosition.x);
+                playCatchAnimation(toPlayerId, directionFrom, () => {
+                    console.log(`Catch animation completed for ${toPlayerId}`);
+                    if (callback) callback(); // No redundant throw animation
+                });
+            }
+        );
+    });
+}
+
+
+function playCatchAnimation(playerId, direction, callback) {
+    console.log(`Playing catch animation for ${playerId} in direction ${direction}`);
+    const frameCount = 4; // Total frames for the catch animation
+    let currentFrame = frameCount; // Start from the last frame
+    const playerPosition = playerPositions[playerId];
+    const playerElement = document.getElementById(playerId);
+
+    if (!playerPosition || !playerElement) {
+        console.error(`Player position or image not found for ${playerId}`);
+        return;
+    }
+
+    // Hide the original player image before starting the frames
+    playerElement.style.transition = 'opacity 0.1s ease';
+    playerElement.style.opacity = '0';
+
+    setTimeout(() => {
+        function nextFrame() {
+            document.querySelectorAll(`#animationContainer img`).forEach(img => img.style.display = 'none');
+
+            if (currentFrame >= 1) {
+                const frameId = `${playerId}_throw_${direction}_${currentFrame}`;
+                const currentFrameElement = document.getElementById(frameId);
+
+                if (currentFrameElement) {
+                    currentFrameElement.style.position = 'absolute';
+                    currentFrameElement.style.left = `${playerPosition.x}px`;
+                    currentFrameElement.style.top = `${playerPosition.y}px`;
+                    currentFrameElement.style.display = 'block';
+                }
+
+                currentFrame--;
+                setTimeout(nextFrame, frameDuration);
+            } else {
+                // Pause at frame 1 before transitioning to the throw animation
+                console.log("Pausing at frame 1 for smoother transition to throw animation.");
+                const frameId = `${playerId}_throw_${direction}_1`;
+                const frame1Element = document.getElementById(frameId);
+
+                if (frame1Element) {
+                    frame1Element.style.position = 'absolute';
+                    frame1Element.style.left = `${playerPosition.x}px`;
+                    frame1Element.style.top = `${playerPosition.y}px`;
+                    frame1Element.style.display = 'block';
+                }
+
+                setTimeout(() => {
+                    console.log("Transitioning to throw animation.");
+                    playThrowAnimation(playerId, direction, callback); // Proceed to throw animation
+                }, pauseAfterCatch); // Brief pause
+            }
+        }
+
+        nextFrame();
+    }, 100); // Delay to match the fade-out duration of the original image
+}
+
+
+
+function playThrowAnimation(playerId, direction, callback) {
+    console.log(`Playing throw animation for ${playerId} in direction ${direction}`);
+    const frameCount = 4; // Total frames for the throw animation
+    let currentFrame = 1; // Start from the first frame
+    const playerPosition = playerPositions[playerId];
+    const playerElement = document.getElementById(playerId);
+
+    if (!playerPosition || !playerElement) {
+        console.error(`Player position or image not found for ${playerId}`);
+        return;
+    }
+
+    // Ensure the original image is hidden before starting the frames
+    playerElement.style.opacity = '0'; // Ensure it's still hidden
+
+    function nextFrame() {
+        document.querySelectorAll(`#animationContainer img`).forEach(img => img.style.display = 'none'); // Hide all frames
+
+        if (currentFrame <= frameCount) {
+            const frameId = `${playerId}_throw_${direction}_${currentFrame}`;
+            const currentFrameElement = document.getElementById(frameId);
+
+            if (currentFrameElement) {
+                currentFrameElement.style.position = 'absolute';
+                currentFrameElement.style.left = `${playerPosition.x}px`;
+                currentFrameElement.style.top = `${playerPosition.y}px`;
+                currentFrameElement.style.display = 'block'; // Display the current frame
+            }
+
+            currentFrame++; // Increment to go forward through frames
+            setTimeout(nextFrame, frameDuration);
+        } else {
+            console.log("Throw animation complete.");
+
+            // Restore the original image only after the frames are done
+            setTimeout(() => {
+                playerElement.style.opacity = '1'; // Blend in the original image
+                if (callback) callback();
+            }, 100); // Minimal delay to avoid any overlap
+        }
+    }
+
+    nextFrame(); // Start throw animation
+}
+
+
+function animateBall(startX, startY, endX, endY, callback) {
+    console.log(`Animating ball from (${startX}, ${startY}) to (${endX}, ${endY})`);
+    const ball = document.getElementById('ball');
+    const startTime = performance.now();
+    const duration = tossDuration; // Adjust as needed for realism
+
+    ball.style.opacity = '1'; // Ensure the ball is visible during movement
+
+    function move(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+
+        ball.style.left = `${startX + (endX - startX) * progress}px`;
+        ball.style.top = `${startY + (endY - startY) * progress}px`;
+
+        if (progress < 1) {
+            requestAnimationFrame(move);
+        } else {
+            ball.style.opacity = '0'; // Blend out the ball after reaching the destination
+            if (callback) callback();
+        }
+    }
+
+    ball.style.display = 'block'; // Ensure ball is shown
+    ball.style.position = 'absolute'; // Ensure absolute positioning
+    requestAnimationFrame(move);
+}
+
+function getDirection(fromX, toX) {
+    if (toX < fromX) return 'left';
+    if (toX > fromX) return 'right';
+    return 'center';
+}
+
+
+
+function playAnimation(playerId, action, direction, callback) {
+    console.log(`${action} animation started for ${playerId} in direction ${direction}`);
+    const frameCount = 4; // Total frames in the animation
+    let frame = action === 'catch' ? frameCount : 1; // Start from the last frame for catch, first for throw
+    const playerImage = document.getElementById(playerId);
+    const playerPosition = playerPositions[playerId];
+
+    if (playerImage) playerImage.style.display = 'none'; // Hide the original player image
+
+    function playFrame() {
+        document.querySelectorAll(`#animationContainer img`).forEach(img => img.style.display = 'none'); // Hide all frames
+
+        const frameId = `${playerId}_${action}_${direction}_${frame}`;
+        const currentFrame = document.getElementById(frameId);
+
+        if (currentFrame && playerPosition) {
+            currentFrame.style.position = 'absolute';
+            currentFrame.style.left = `${playerPosition.x}px`;
+            currentFrame.style.top = `${playerPosition.y}px`;
+            currentFrame.style.display = 'block'; // Show the current frame
+        }
+
+        if ((action === 'catch' && frame <= 1) || (action === 'throw' && frame >= frameCount)) {
+            console.log(`${action} animation ended for ${playerId}`);
+            document.querySelectorAll(`#animationContainer img`).forEach(img => img.style.display = 'none'); // Hide all frames
+
+            if (playerImage) playerImage.style.display = 'block'; // Restore original player image
+            if (callback) callback(); // Execute callback when animation ends
+        } else {
+            frame += action === 'catch' ? -1 : 1; // Reverse frames for catch, forward for throw
+            setTimeout(playFrame, frameDuration);
+        }
+    }
+
+    playFrame(); // Start the animation
+}
+function tossBallToSelf(fromPlayerId, callback) {
+    const fromPlayerPosition = playerPositions[fromPlayerId];
+    const selfPlayerPosition = playerPositions[selectedSelf];
+    const ball = document.getElementById('ball');
+
+    if (!fromPlayerPosition || !selfPlayerPosition) {
+        console.error(`Invalid positions for ${fromPlayerId} or self-player`);
+        return;
+    }
+
+    console.log(`Tossing ball from ${fromPlayerId} to self-player`);
+
+    // Determine direction based on the incoming ball
+    const directionToSelf = fromPlayerPosition.x < selfPlayerPosition.x ? 'right' : 'left';
+
+    // Step 1: Play throw animation for the throwing player
+    playThrowAnimation(fromPlayerId, directionToSelf, () => {
+        // Step 2: Animate ball movement to self-player
+        animateBall(
+            fromPlayerPosition.x,
+            fromPlayerPosition.y,
+            selfPlayerPosition.x,
+            selfPlayerPosition.y,
+            () => {
+                console.log("Ball reached self-player.");
+
+                // Step 3: Play catch animation for self-player
+                playCatchAnimation(selectedSelf, directionToSelf, () => {
+                    console.log("Self-player caught the ball.");
+
+                    // Determine the direction for throwing the ball to the other player
+                    const otherPlayer = selectedOthers.find(p => p !== fromPlayerId);
+                    const otherPlayerPosition = playerPositions[otherPlayer];
+                    const directionToOther = selfPlayerPosition.x < otherPlayerPosition.x ? 'right' : 'left';
+
+                    console.log(`Tossing ball from self-player to ${otherPlayer}`);
+
+                    // Step 4: Play throw animation for the self-player
+                    playThrowAnimation(selectedSelf, directionToOther, () => {
+                        // Step 5: Animate ball movement to the other player
+                        animateBall(
+                            selfPlayerPosition.x,
+                            selfPlayerPosition.y,
+                            otherPlayerPosition.x,
+                            otherPlayerPosition.y,
+                            () => {
+                                console.log(`Ball reached ${otherPlayer}.`);
+
+                                // Step 6: Play catch animation for the receiving player
+                                playCatchAnimation(otherPlayer, directionToOther, () => {
+                                    console.log(`${otherPlayer} caught the ball.`);
+                                    if (callback) callback(); // Proceed with the next steps
+                                });
+                            }
+                        );
+                    });
+                });
+            }
+        );
+    });
+}
+
+
+
+function updateSelfPlayerDirection(direction) {
+    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+    const selfPlayerOriginal = document.getElementById(selectedSelf);
+
+    if (!selfPlayerContainer || !selfPlayerOriginal) {
+        console.error("Self player container or original image not found.");
+        return;
+    }
+
+    // Get the position and size of the original image
+    const rect = selfPlayerOriginal.getBoundingClientRect();
+
+    // Align the container with the original image
+    selfPlayerContainer.style.position = 'absolute';
+    selfPlayerContainer.style.left = `${rect.left + window.scrollX}px`;
+    selfPlayerContainer.style.top = `${rect.top + window.scrollY}px`;
+    selfPlayerContainer.style.width = `${rect.width}px`;
+    selfPlayerContainer.style.height = `${rect.height}px`;
+
+    // Set the directional image
+    const selfImage = direction === 'left'
+        ? `${selectedSelf}_self_left.png`
+        : `${selectedSelf}_self_right.png`;
+
+    console.log(`Blending in self-player image facing ${direction}: ${selfImage}`);
+
+    // Update the container's background image
+    selfPlayerContainer.style.backgroundImage = `url('${selfImage}')`;
+    selfPlayerContainer.style.backgroundSize = 'contain';
+    selfPlayerContainer.style.backgroundRepeat = 'no-repeat';
+    selfPlayerContainer.style.display = 'block';
+
+    // Blend out the original image
+    selfPlayerOriginal.style.transition = 'opacity 0.3s ease';
+    selfPlayerOriginal.style.opacity = '0';
+}
+
+function restoreOriginalSelfPlayerImage() {
+    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+    const selfPlayerOriginal = document.getElementById(selectedSelf);
+
+    if (!selfPlayerContainer || !selfPlayerOriginal) {
+        console.error("Self player container or original image not found.");
+        return;
+    }
+
+    console.log("Restoring original self-player image.");
+
+    // Blend in the original image
+    selfPlayerOriginal.style.transition = 'opacity 0.3s ease';
+    selfPlayerOriginal.style.opacity = '1';
+
+    // Hide the directional container
+    setTimeout(() => {
+        selfPlayerContainer.style.display = 'none';
+    }, 300); // Allow time for the transition
+}
+
+
+
+
+// Function to start tossing sequence after a "No" response
+function startOtherPlayersTossSequence(totalTosses) {
+    let tossesCompleted = 0;
+    const playerA = selectedOthers[0];
+    const playerB = selectedOthers[1];
+
+    function tossBetweenPlayers(currentPlayer, targetPlayer) {
+        if (tossesCompleted >= totalTosses) {
+            showMetaQuestion();
+            return;
+        }
+
+        tossBallToPlayer(currentPlayer, targetPlayer, () => {
+            tossesCompleted++;
+            setTimeout(() => {
+                tossBetweenPlayers(targetPlayer, currentPlayer);
+            }, tossDuration + frameDuration * 4);
+        });
+    }
+
+    tossBetweenPlayers(playerA, playerB);
+}
+function showMetaQuestion() {
+    if (currentTrial >= totalTrials) {
+        endGame();
+        return;
+    }
+
+    console.log("Pausing game and showing meta question...");
+    pauseGame();
+    tossBallToCenter(() => {
+        console.log("Ball is now at the center. Showing meta question...");
+        const metaQuestionContainer = document.getElementById('metaQuestionContainer');
+        metaQuestionContainer.style.display = 'block';
+
+        // Handle yes/no response
+        const yesButton = document.getElementById('continueYes');
+        const noButton = document.getElementById('continueNo');
+
+        yesButton.addEventListener('click', () => {
+            metaQuestionContainer.style.display = 'none';
+            promptPlayerChoice();
+            currentTrial++; // Increment trial after meta-question
+            assignRewardingAndPunishingPlayers(); // Update contingencies
+        }, { once: true });
+
+        noButton.addEventListener('click', () => {
+            metaQuestionContainer.style.display = 'none';
+            startTossBetweenOthers(10, () => {
+                currentTrial++; // Increment trial after tosses
+                assignRewardingAndPunishingPlayers(); // Update contingencies
+                showMetaQuestion();
+            });
+        }, { once: true });
+    });
+}
+
+function tossBallToCenter(callback) {
+    const gameContainer = document.getElementById('gameContainer');
+    const ball = document.getElementById('ball');
+    const centerX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+    const centerY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+
+    console.log(`Tossing ball to center at (${centerX}, ${centerY})`);
+    const fromPlayer = selectedOthers[0];
+    const fromPosition = playerPositions[fromPlayer];
+
+    tossBallToPosition(fromPosition, { x: centerX, y: centerY }, () => {
+        if (callback) callback();
+    });
+}
+
+
+
+function clearMetaQuestionListeners() {
+    const yesButton = document.getElementById('continueYes');
+    const noButton = document.getElementById('continueNo');
+
+    const newYesButton = yesButton.cloneNode(true);
+    const newNoButton = noButton.cloneNode(true);
+
+    yesButton.parentNode.replaceChild(newYesButton, yesButton);
+    noButton.parentNode.replaceChild(newNoButton, noButton);
+}
+
+
+function promptPlayerChoice() {
+    console.log("Prompting player to choose between the two other players.");
+    const speechBubble = document.getElementById('speechBubble');
+    const selfPlayerPosition = playerPositions[selectedSelf];
+
+    if (!selfPlayerPosition) {
+        console.error("Self player position not found.");
+        return;
+    }
+
+    // Position and display the speech bubble
+    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`;
+    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`;
+    speechBubble.textContent = "Wähle einen Spieler aus"; // Prompt text
+    speechBubble.style.display = 'block';
+
+    // Highlight the two other players
+    selectedOthers.forEach(playerId => {
+        const playerElement = document.getElementById(playerId);
+        if (!playerElement) return;
+
+        // Make the players clickable
+        playerElement.style.cursor = 'pointer';
+        playerElement.addEventListener('click', () => {
+            selectedOthers.forEach(otherPlayerId => {
+                const otherElement = document.getElementById(otherPlayerId);
+                otherElement.style.cursor = 'default';
+                otherElement.style.pointerEvents = 'none'; // Disable further clicks
+            });
+            handlePlayerChoice(playerId);
+        }, { once: true }); // Ensure only one click is registered
+    });
+
+}
+
+
+function hidePromptAndContinue() {
+    const speechBubble = document.getElementById('speechBubble');
+    if (speechBubble) speechBubble.style.display = 'none';
+    resumeGame(); // Resume the game after the choice
+}
+
+
+let choices= [];
+
+
+function showPlayerChoicePrompt() {
+    const speechBubble = document.getElementById('speechBubble');
+    const selfPlayerPosition = playerPositions[selectedSelf];
+
+    if (!selfPlayerPosition) {
+        console.error("Self player position not found.");
+        return;
+
+        
+    document.getElementById('playerOptionsContainer').style.display = 'none';
+
+
+    // Position the speech bubble next to the self-player
+    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`; // Adjust horizontal position
+    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`; // Adjust vertical position
+    speechBubble.textContent = "Entscheide dich, wen du ansprichst"; // Text inside the speech bubble
+    speechBubble.style.display = 'block';
+
+    // Add click event listeners to the other players
+    selectedOthers.forEach(playerId => {
+        const playerElement = document.getElementById(playerId);
+        if (!playerElement) return;
+
+        playerElement.style.cursor = 'pointer';
+        playerElement.addEventListener('click', () => {
+            handlePlayerChoice(playerId);
+        }, { once: true });
+    });
+}
+
+    // Automatically hide the speech bubble after a timeout if no choice is made
+    setTimeout(() => {
+        if (!choiceMade) {
+            showSpeechBubble("Zu langsam", 2000); // Display "Zu langsam" message
+            hidePromptAndContinue(); // Hide the speech bubble and continue the game
+        }
+    }, 30000); // 30-second timeout
+}
+
+function pauseGame() {
+    gamePaused = true;
+
+    // Stop any ongoing ball toss interval
+    if (ballTossInterval) {
+        clearInterval(ballTossInterval);
+        ballTossInterval = null; // Clear the reference
+    }
+
+    // Disable any animations
+    isAnimationPlaying = false;
+
+    console.log("Game paused.");
+}
+
+function resumeGame() {
+    if (!gamePaused) return; // If the game is not paused, do nothing
+
+    gamePaused = false;
+
+    // Restart the ball toss sequence or other gameplay activities
+    startBallToss();
+
+    console.log("Game resumed.");
+}
+
+
+function resetGame() {
+    clearInterval(ballTossInterval); // Clear any running interval
+    gamePaused = true; // Pause game
+    tossCount = 0; // Reset toss count
+    startGame(); // Restart the game
+}
+
+// Function to hide the player choice prompt and continue the game
+function hidePlayerChoicePrompt() {
+    const choicePrompt = document.querySelector('.choose-player');
+    if (choicePrompt) choicePrompt.style.display = 'none';
+}
+
+// Example implementation of showSpeechBubble
+function showSpeechBubble(message, duration = 3000) {
+    const speechBubble = document.getElementById('speechBubble');
+    speechBubble.textContent = message;
+    speechBubble.style.display = 'block';
+
+    setTimeout(() => {
+        speechBubble.style.display = 'none';
+    }, duration);
+}
+
+
+function endGame() {
+    console.log("Game Over! All 144 trials completed.");
+    gameContainer.style.display = 'none';
+    alert("Game Over! Thank you for playing.");
+}
+
+
+function tossInTriangleWithSelf(callback) {
+    const tossSequence = [
+        { from: selectedOthers[0], to: selectedSelf },
+        { from: selectedSelf, to: selectedOthers[1] },
+        { from: selectedOthers[1], to: selectedSelf },
+        { from: selectedSelf, to: selectedOthers[0] }
+    ];
+    let tossIndex = 0;
+
+    function getAnimationDirection(fromPlayer, toPlayer) {
+        if (toPlayer === selectedSelf) return 'center';
+        if (fromPlayer === selectedSelf) {
+            return toPlayer === selectedOthers[0] ? 'left' : 'right';
+        }
+        return toPlayer === selectedOthers[0] ? 'left' : 'right';
+    }
+
+    function tossToNext() {
+    if (tossIndex >= tossSequence.length) {
+        console.log('Toss sequence complete.');
+        if (callback) callback(); // Call the callback after sequence completes
+        return;
+    }
+
+    const { from, to } = tossSequence[tossIndex];
+    const fromPosition = playerPositions[from];
+    const toPosition = playerPositions[to];
+
+    if (!fromPosition || !toPosition) {
+        console.error(`Invalid positions for ${from} or ${to}`);
+        tossIndex++;
+        tossToNext(); // Skip this toss and move to the next
+        return;
+    }
+
+    console.log(`Tossing ball from ${from} to ${to}`);
+    console.log(`From Position: x=${fromPosition.x}, y=${fromPosition.y}`);
+    console.log(`To Position: x=${toPosition.x}, y=${toPosition.y}`);
+
+    const direction = getAnimationDirection(from, to);
+
+    // Play throw animation for the current player
+    playAnimation(from, 'throw', direction, () => {
+        // Move the ball to the next player
+        animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
+            console.log(`Ball reached ${to}`);
+
+            // Play catch animation for the target player
+            playAnimation(to, 'catch', direction, () => {
+                console.log(`Catch animation completed for ${to}`);
+                tossIndex++; // Move to the next toss in sequence
+                setTimeout(tossToNext, 500); // Short delay before the next toss
+            });
+        });
+    });
+}
+}
+
+function updateSelfPlayerImage(direction) {
+    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+
+    if (!selfPlayerContainer) {
+        console.error("Self player container not found.");
+        return;
+    }
+
+    // Determine the correct image for the direction
+    const selfImage = direction === 'left'
+        ? `${selectedSelf}_self_left.png`
+        : `${selectedSelf}_self_right.png`;
+
+    // Update the self-player container's background image
+    selfPlayerContainer.style.backgroundImage = `url('${selfImage}')`;
+    selfPlayerContainer.style.backgroundSize = 'contain';
+    selfPlayerContainer.style.backgroundRepeat = 'no-repeat';
+    selfPlayerContainer.style.display = 'block'; // Ensure the container is visible
+
+    console.log(`Updated self-player container image to ${selfImage}`);
+}
+function handlePlayerChoice(playerId) { 
+    const chosenPlayerElement = document.getElementById(playerId);
+    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+    const selfPlayerOriginal = document.getElementById(selectedSelf); // Original self-player image
+    const speechBubble = document.getElementById('speechBubble');
+    const isRewarding = roles.rewardingPlayers.includes(playerId);
+
+    if (!chosenPlayerElement || !selfPlayerContainer || !selfPlayerOriginal) {
+        console.error(`Error in handlePlayerChoice: Required elements not found.`);
+        return;
+    }
+
+    pauseGame(); // Pause the game while processing the choice
+
+    const selfPosition = playerPositions[selectedSelf];
+    const chosenPlayerPosition = playerPositions[playerId];
+    const direction = getDirection(selfPosition.x, chosenPlayerPosition.x);
+
+    // Turn the self-player to face the chosen player
+    updateSelfPlayerDirection(direction);
+
+    // Show feedback (image, audio, and speech bubble) before proceeding
+    showFeedback(playerId, isRewarding, () => {
+        // Blend back to the original self-player image after feedback
+        restoreOriginalSelfPlayerImage();
+
+        if (isRewarding) {
+            console.log("Rewarding choice. Simulating toss to self and back...");
+
+            // Toss to self and then back to other player
+            const fromPlayerPosition = playerPositions[playerId];
+            const selfPosition = {
+                x: selfPlayerContainer.offsetLeft + selfPlayerContainer.offsetWidth / 2,
+                y: selfPlayerContainer.offsetTop + selfPlayerContainer.offsetHeight / 2,
+            };
+
+            // Step 1: Play throw animation for the chosen player
+            const directionToSelf = getDirection(fromPlayerPosition.x, selfPosition.x);
+            playThrowAnimation(playerId, directionToSelf, () => {
+                // Step 2: Toss ball to self
+                animateBall(fromPlayerPosition.x, fromPlayerPosition.y, selfPosition.x, selfPosition.y, () => {
+                    console.log("Ball reached self-player.");
+
+                    // Step 3: Play catch animation for self-player
+                    const directionFromChosen = getDirection(selfPosition.x, fromPlayerPosition.x);
+                    playCatchAnimation(selectedSelf, directionFromChosen, () => {
+                        console.log("Self-player caught the ball.");
+
+                        // Step 4: Prepare to throw to the other player
+                        const otherPlayer = selectedOthers.find(p => p !== playerId);
+                        const otherPlayerPosition = playerPositions[otherPlayer];
+                        const directionToOther = getDirection(selfPosition.x, otherPlayerPosition.x);
+
+                        // Step 5: Play throw animation for self-player
+                        playThrowAnimation(selectedSelf, directionToOther, () => {
+                            // Step 6: Toss ball to the other player
+                            animateBall(selfPosition.x, selfPosition.y, otherPlayerPosition.x, otherPlayerPosition.y, () => {
+                                console.log("Ball reached the other player.");
+
+                                // Step 7: Play catch animation for the other player
+                                const directionFromSelf = getDirection(otherPlayerPosition.x, selfPosition.x);
+                                playCatchAnimation(otherPlayer, directionFromSelf, () => {
+                                    console.log("Other player caught the ball.");
+
+                                    // Step 8: Toss ball to the center and show meta-question
+                                    tossBallToCenter(() => {
+                                        showMetaQuestion();
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        } else {
+            console.log("Punishing choice. Starting 3 tosses between other players...");
+            startTossBetweenOthers(3, () => {
+                showMetaQuestion(); 
+            });
+        }
+    });
+}
+
+
+
+
+
+function executeTossSequence(sequence, callback) {
+    let index = 0;
+
+    function tossNext() {
+        if (index >= sequence.length) {
+            if (callback) callback();
+            return;
+        }
+
+        const { from, to, centerPosition } = sequence[index];
+        if (to === 'center') {
+            tossBallToCenter(() => {
+                index++;
+                tossNext();
+            });
+        } else {
+            tossBallToPlayer(from, to, () => {
+                index++;
+                tossNext();
+            });
+        }
+    }
+
+    tossNext(); // Start the sequence
+}
+
+
+function tossBallToPosition(fromPosition, toPosition, callback) {
+    console.log(`Tossing ball from (${fromPosition.x}, ${fromPosition.y}) to (${toPosition.x}, ${toPosition.y})`);
+    animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
+        console.log("Ball reached destination.");
+        if (callback) callback();
+    });
+}
+
+
+function startTossBetweenOthers(tossCount, callback) { 
+    console.log(`Starting ${tossCount} tosses between other players...`);
+    let currentToss = 0;
+
+    const playerA = selectedOthers[0];
+    const playerB = selectedOthers[1];
+
+    function toss() {
+        if (currentToss >= tossCount) {
+            console.log(`Completed ${tossCount} tosses.`);
+            if (callback) {
+                pauseGame(); // Pause the game after tosses
+                callback();
+            }
+            return;
+        }
+
+        const fromPlayer = currentToss % 2 === 0 ? playerA : playerB;
+        const toPlayer = currentToss % 2 === 0 ? playerB : playerA;
+
+        const fromPosition = playerPositions[fromPlayer];
+        const toPosition = playerPositions[toPlayer];
+        const directionTo = getDirection(fromPosition.x, toPosition.x);
+        const directionFrom = getDirection(toPosition.x, fromPosition.x);
+
+        console.log(`Tossing ball from ${fromPlayer} to ${toPlayer}`);
+
+        
+
+            // Step 2: Animate the ball movement
+            animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
+                console.log(`Ball reached ${toPlayer}`);
+
+                // Step 3: Play catch animation for the receiving player
+                playCatchAnimation(toPlayer, directionFrom, () => {
+                    console.log(`Catch animation completed for ${toPlayer}`);
+
+                    // Step 4: Increment toss count and proceed to the next toss
+                    currentToss++;
+                    toss(); // Start the next toss immediately
+                });
+            });
+        };
+    
+
+    toss(); // Start the toss sequence
+}
+
+
+ 
+
+
+
+
+
+function tossToOtherPlayerUntilMeta(callback) {
+    let tossCount = 0;
+    const maxTosses = 10; // Number of tosses before meta-question
+    const playerA = selectedOthers[0];
+    const playerB = selectedOthers[1];
+
+    function tossBetweenTwo() {
+        if (tossCount >= maxTosses) {
+            if (callback) callback(); // Call callback after sequence completes
+            return;
+        }
+
+        const fromPlayer = tossCount % 2 === 0 ? playerA : playerB;
+        const toPlayer = tossCount % 2 === 0 ? playerB : playerA;
+
+        tossBallToPlayer(fromPlayer, toPlayer, () => {
+            tossCount++;
+            tossBetweenTwo();
+        });
+    }
+
+    tossBetweenTwo(); // Start the toss sequence
+}
+
+function showFeedback(playerId, isRewarding, callback) {
+    const feedbackImgId = `${playerId}_${isRewarding ? 'reward' : 'punish'}`;
+    const feedbackImg = document.getElementById(feedbackImgId);
+    const playerElement = document.getElementById(playerId);
+    const feedbackAudio = isRewarding ? rewardAudio2 : punishAudio;
+    const speechBubble = document.getElementById('speechBubble');
+    const feedbackMessage = isRewarding
+        ? "Ja gerne, komm spiel mit uns mit."
+        : "Nein, geh weg! Ich habe keine Lust mit dir zu spielen.";
+
+    if (!feedbackImg || !playerElement) {
+        console.error(`Feedback image or player element not found for ${playerId}`);
+        if (callback) callback(); // Proceed even if there's an issue
+        return;
+    }
+
+    // Get the exact position of the player on the screen
+    const playerRect = playerElement.getBoundingClientRect();
+    const playerPosition = {
+        x: playerRect.left + window.scrollX,
+        y: playerRect.top + window.scrollY,
+        width: playerRect.width,
+        height: playerRect.height,
+    };
+
+    // Blend out the original player image
+    playerElement.style.transition = 'opacity 0.5s ease'; // Smooth blend-out effect
+    playerElement.style.opacity = '0'; // Hide original player image
+
+    // Position feedback image exactly over the player
+    feedbackImg.style.position = 'absolute';
+    feedbackImg.style.left = `${playerPosition.x}px`;
+    feedbackImg.style.top = `${playerPosition.y}px`;
+    feedbackImg.style.width = `${playerPosition.width}px`;
+    feedbackImg.style.height = `${playerPosition.height}px`;
+    feedbackImg.style.display = 'block';
+    feedbackImg.style.transition = 'opacity 0.5s ease'; // Smooth blend effect
+    feedbackImg.style.opacity = '1';
+
+    // Position the speech bubble slightly above the player
+    speechBubble.style.position = 'absolute';
+    speechBubble.style.left = `${playerPosition.x + playerPosition.width / 2 - 100}px`; // Center horizontally
+    speechBubble.style.top = `${playerPosition.y - 60}px`; // Slightly above the player
+    speechBubble.textContent = feedbackMessage;
+    speechBubble.style.display = 'block';
+    speechBubble.style.transition = 'opacity 0.5s ease'; // Smooth blend effect
+    speechBubble.style.opacity = '1';
+
+    // Play the feedback audio
+    feedbackAudio.play();
+
+    // Blend out feedback image and speech bubble after a delay
+    setTimeout(() => {
+        feedbackImg.style.opacity = '0'; // Blend out feedback image
+        speechBubble.style.opacity = '0'; // Blend out speech bubble
+
+        setTimeout(() => {
+            feedbackImg.style.display = 'none';
+            speechBubble.style.display = 'none';
+
+            // Restore original player image after feedback
+            playerElement.style.opacity = '1'; // Show original player image
+            if (callback) callback();
+        }, 500); // Ensure it's hidden after fade-out
+    }, 3000); // Display duration for feedback
+}
+
+
+// Function to select the next player in `selectedOthers`, avoiding self-player
+function selectNextOtherPlayer(currentPlayerId) {
+    const nextPlayerId = selectedOthers.find(player => player !== currentPlayerId);
+    if (nextPlayerId) return nextPlayerId;
+
+    console.error("No valid next player found in selectedOthers.");
+    return selectedOthers[0]; // Fallback if no alternative is found
+}
+
+
+
+// Hide prompt and continue game after choice is made
+function hidePromptAndContinue() {
+    const choicePrompt = document.querySelector('.choose-player');
+    if (choicePrompt) {
+        choicePrompt.style.display = 'none'; // Ensure prompt is hidden
+    }
+    clearTimeout(choiceTimeout); // Clear any auto-dismiss timeout
+    resetTossCounter();
+    resumeGame();
+}
+
+
+function assignRewardingAndPunishingPlayers() {
+    const leftPlayer = selectedOthers[0];
+    const rightPlayer = selectedOthers[1];
+
+    // Update rewarding/punishing states every 12 and 24 trials
+    if (currentTrial % leftPlayerChangeInterval === 0) {
+        leftPlayerRewarding = Math.random() < 0.8; // 80:20 rewarding probability
+    }
+    if (currentTrial % rightPlayerChangeInterval === 0) {
+        rightPlayerRewarding = Math.random() < 0.8; // 80:20 rewarding probability
+    }
+
+    // Assign roles based on the states
+    roles.rewardingPlayers = [];
+    roles.punishingPlayers = [];
+    if (leftPlayerRewarding) roles.rewardingPlayers.push(leftPlayer);
+    else roles.punishingPlayers.push(leftPlayer);
+
+    if (rightPlayerRewarding) roles.rewardingPlayers.push(rightPlayer);
+    else roles.punishingPlayers.push(rightPlayer);
+
+    console.log('Rewarding Players:', roles.rewardingPlayers);
+    console.log('Punishing Players:', roles.punishingPlayers);
+}
+
+
+
+function giveRewardingFeedback(playerId) {
+    console.log(`Displaying reward feedback for ${playerId}`);
+    showFeedback(playerId, 'reward'); // Call showFeedbackImage for reward
+}
+
+function givePunishingFeedback(playerId) {
+    console.log(`Displaying punish feedback for ${playerId}`);
+    showFeedback(playerId, 'punish'); // Call showFeedbackImage for punish
+}
+
+
+// Function to play rewarding audio
+function playRewardingAudio() {
+    rewardAudio2.play();  // Assuming rewardAudio2 is the rewarding sound element
+}
+
+// Function to play punishing audio
+function playPunishingAudio() {
+    punishAudio.play();  // Assuming punishAudio is the punishing sound element
+}
+
+// Helper function to show a speech bubble message
+function showSpeechBubble(message, duration = 3000) {
+    const speechBubble = document.getElementById('speechBubble');
+    speechBubble.textContent = message;
+    speechBubble.style.display = 'block';
+
+    setTimeout(() => {
+        speechBubble.style.display = 'none';
+    }, duration);
+}
+
+
+// Function to adjust the drifting probabilities based on feedback
+function adjustDriftingProbabilities(isRewarding) {
+    const driftAmount = 0.1;
+    playerIds.forEach((playerId, index) => {
+        if (roles.rewardingPlayers.includes(playerId)) {
+            rewardProbabilities[index] = Math.min(1, rewardProbabilities[index] + driftAmount);
+        } else {
+            rewardProbabilities[index] = Math.max(0, rewardProbabilities[index] - driftAmount);
+        }
+    });
+}
+
+
+const totalMoodTrials = 6;
+let currentMoodTrial = 0;
+  // Listener for mood check submission
+  document.getElementById('submitRatings').addEventListener('click', () => {
+        const mood = document.getElementById('mood').value;
+        const excitement = document.getElementById('excitement').value;
+        moodContainer.style.display = 'none';
+        console.log(`Mood: ${mood}, Excitement: ${excitement}`);
+
+        // Reset for the next mood check
+        roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+        startBallToss();
+    });
+
+// Function to check if it's time for a mood check
+function checkMoodPrompt() {
+    if (trialCount >= maxTrialsBeforeMoodCheck) {
+        trialCount = 0; // Reset trial count after mood check
+        promptMoodCheck(); // Prompt mood check
+        maxTrialsBeforeMoodCheck = getRandomInt(3, 6); // Set the next mood check interval
+    }
+}
+
+// Function to prompt the mood check
+function promptMoodCheck() {
+    pauseGame(); // Pause the game for the mood check
+    moodContainer.style.display = 'block';
+
+    document.getElementById('submitRatings').addEventListener('click', () => {
+        moodContainer.style.display = 'none';
+        resumeGame(); // Resume the game after mood check
+    }, { once: true }); // Ensure this handler runs only once per prompt
+}
+
+//Function to generate a random number of rounds for mood check
+    function getRandomRoundsForMoodCheck() {
+        return getRandomInt(3, 6); // Random number between 3 and 6
+    }
+  
+        // Restart the game
+        function restartGame() {
+        currentMoodTrial = 0;
+        roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+        startBallToss(); // Restart the game after completing 25 trials
+    }
+
+</script>
+
+</body>
+
+</html>
