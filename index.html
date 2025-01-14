@@ -72,7 +72,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: white;
+            color: black;
             text-align: center;
         }
 
@@ -87,6 +87,10 @@
     transform: translate(-50%, -50%); /* Zentriere das Video */
 }
 
+.player:hover {
+    border-color: transparent; /* Highlight on hover */
+    cursor: pointer; /* Ensure pointer cursor */
+}
 
 
         #playerOptionsContainer {
@@ -613,7 +617,7 @@
     const totalTrials = 144; 
     const minRoundsBeforeMoodCheck = 3;
     const maxRoundsBeforeMoodCheck = 6;
-    let roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+
     let instructionsCompleted = false;
     let playerId= "player1"; "player2"; "player3"; "player4"; "player5"; "player6";
     let playerImg=document.querySelector(`img[data-player="${playerId}"]`);
@@ -849,6 +853,12 @@ function startGame() {
     roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
 }
 
+// Function to get a random number of rounds for the mood check
+function getRandomRoundsForMoodCheck() {
+    const randomRounds = Math.floor(Math.random() * (6 - 3 + 1)) + 3; // Random number between 3 and 6
+    console.log(`New mood check interval set: ${randomRounds} meta questions`);
+    return randomRounds;
+}
 
 
 
@@ -867,11 +877,18 @@ let currentPlayerId;
 let lastPlayerId;
 
 
+
 let maxTossesBeforeMeta = getRandomInt(3, 6); // Random toss count between 3 and 6
 
-function startBallToss() {
-    if (gamePaused || isAnimationPlaying) return;
 
+
+function startBallToss() {
+    if (gamePaused || isAnimationPlaying) {
+        console.log("Game is paused or animation is playing, not starting ball toss.");
+        return;
+    }
+
+    console.log("Starting ball toss sequence...");
     ballTossInterval = setInterval(() => {
         if (tossCount >= maxTossesBeforeMeta) {
             clearInterval(ballTossInterval);
@@ -880,15 +897,34 @@ function startBallToss() {
             tossCount = 0;
             maxTossesBeforeMeta = getRandomInt(3, 6);
 
-            showMetaQuestion();
+            // Increment meta question count
+            metaQuestionCount++;
+
+            console.log(`Meta Question Count: ${metaQuestionCount}, Rounds Until Mood Check: ${roundsUntilMoodCheck}`);
+
+            // Check if it's time for a mood check
+            if (metaQuestionCount >= roundsUntilMoodCheck) {
+                console.log("Prompting mood check before meta question...");
+                promptMoodCheck(() => {
+                    console.log("Mood check completed. Showing meta question...");
+                    metaQuestionCount = 0; // Reset the count after mood check
+                    roundsUntilMoodCheck = getRandomRoundsForMoodCheck(); // Set new interval
+                    showMetaQuestion(); // Show the meta question
+                    startBallToss(); // Resume ball toss after meta question
+                });
+            } else {
+                console.log("Showing meta question...");
+                showMetaQuestion(); // Show the meta question if no mood check
+                startBallToss(); // Resume ball toss after meta question
+            }
             return;
         }
 
-           
-        //Toss ball to next player
+        // Toss ball to the next player
         const nextPlayer = selectedOthers.find(player => player !== currentPlayerId);
 
         if (nextPlayer) {
+            console.log(`Tossing ball to next player: ${nextPlayer}`);
             tossBallToPlayer(currentPlayerId, nextPlayer);
             currentPlayerId = nextPlayer;
             tossCount++;
@@ -897,8 +933,6 @@ function startBallToss() {
         }
     }, tossDuration + frameDuration * 4);
 }
-
-
 
 
 function selectRandomPlayer(players) {
@@ -1273,40 +1307,94 @@ function startOtherPlayersTossSequence(totalTosses) {
 
     tossBetweenPlayers(playerA, playerB);
 }
+
+
+let metaQuestionCount = 0; // Counts the number of meta questions
+const moodCheckThreshold = 12; // Mood check happens after every 12 meta questions
+
 function showMetaQuestion() {
-    if (currentTrial >= totalTrials) {
-        endGame();
-        return;
-    }
+    console.log(`Meta Question Count: ${metaQuestionCount}`);
+    pauseGame(); // Pause the game while showing the meta question
 
-    console.log("Pausing game and showing meta question...");
-    pauseGame();
-    tossBallToCenter(() => {
-        console.log("Ball is now at the center. Showing meta question...");
-        const metaQuestionContainer = document.getElementById('metaQuestionContainer');
-        metaQuestionContainer.style.display = 'block';
+    const metaQuestionContainer = document.getElementById('metaQuestionContainer');
+    metaQuestionContainer.style.display = 'block';
 
-        // Handle yes/no response
-        const yesButton = document.getElementById('continueYes');
-        const noButton = document.getElementById('continueNo');
+    // Clear existing listeners to prevent duplicates
+    clearMetaQuestionListeners();
 
-        yesButton.addEventListener('click', () => {
-            metaQuestionContainer.style.display = 'none';
-            promptPlayerChoice();
-            currentTrial++; // Increment trial after meta-question
-            assignRewardingAndPunishingPlayers(); // Update contingencies
-        }, { once: true });
+    // Handle "Yes" response
+    const yesButton = document.getElementById('continueYes');
+    yesButton.addEventListener('click', () => {
+        console.log("Meta question answered: Yes");
+        metaQuestionContainer.style.display = 'none';
 
-        noButton.addEventListener('click', () => {
-            metaQuestionContainer.style.display = 'none';
-            startTossBetweenOthers(10, () => {
-                currentTrial++; // Increment trial after tosses
-                assignRewardingAndPunishingPlayers(); // Update contingencies
-                showMetaQuestion();
-            });
-        }, { once: true });
+        incrementMetaQuestionCount();
+    });
+
+    // Handle "No" response
+    const noButton = document.getElementById('continueNo');
+    noButton.addEventListener('click', () => {
+        console.log("Meta question answered: No");
+        metaQuestionContainer.style.display = 'none';
+
+        incrementMetaQuestionCount();
     });
 }
+
+function incrementMetaQuestionCount() {
+    metaQuestionCount++; // Increment the counter
+    if (metaQuestionCount === moodCheckThreshold) {
+        console.log("Triggering mood check...");
+        metaQuestionCount = 0; // Reset after mood check
+        promptMoodCheck(() => {
+            console.log("Mood check completed. Prompting player choice...");
+            promptPlayerChoice(); // Prompt player choice after mood check
+        });
+    } else {
+        console.log(`Proceeding without mood check. Current count: ${metaQuestionCount}`);
+        promptPlayerChoice(); // Always show player choice after meta question
+    }
+}
+
+function promptMoodCheck(callback) {
+    console.log("Prompting mood check...");
+    const moodContainer = document.getElementById('moodContainer');
+    moodContainer.style.display = 'block';
+    gamePaused = true; // Pause the game during the mood check
+
+    // Wait for the user to submit their mood ratings
+    document.getElementById('submitRatings').addEventListener(
+        'click',
+        () => {
+            const mood = document.getElementById('mood').value;
+            const excitement = document.getElementById('excitement').value;
+
+            console.log("Mood Submitted:", { mood, excitement });
+
+            // Hide the mood container and resume the game
+            moodContainer.style.display = 'none';
+            gamePaused = false;
+            if (callback) callback(); // Proceed with the next action after mood check
+        },
+        { once: true } // Ensure this listener only runs once
+    );
+}
+
+
+function clearMetaQuestionListeners() {
+    const yesButton = document.getElementById('continueYes');
+    const noButton = document.getElementById('continueNo');
+
+    // Replace buttons to remove old listeners
+    const newYesButton = yesButton.cloneNode(true);
+    const newNoButton = noButton.cloneNode(true);
+
+    yesButton.parentNode.replaceChild(newYesButton, yesButton);
+    noButton.parentNode.replaceChild(newNoButton, noButton);
+}
+
+
+
 
 function tossBallToCenter(callback) {
     const gameContainer = document.getElementById('gameContainer');
@@ -1323,53 +1411,70 @@ function tossBallToCenter(callback) {
     });
 }
 
-
-
-function clearMetaQuestionListeners() {
-    const yesButton = document.getElementById('continueYes');
-    const noButton = document.getElementById('continueNo');
-
-    const newYesButton = yesButton.cloneNode(true);
-    const newNoButton = noButton.cloneNode(true);
-
-    yesButton.parentNode.replaceChild(newYesButton, yesButton);
-    noButton.parentNode.replaceChild(newNoButton, noButton);
-}
-
-
 function promptPlayerChoice() {
     console.log("Prompting player to choose between the two other players.");
+
     const speechBubble = document.getElementById('speechBubble');
     const selfPlayerPosition = playerPositions[selectedSelf];
 
+    // Validate self player position
     if (!selfPlayerPosition) {
-        console.error("Self player position not found.");
+        console.error("Error: Self player position not found.");
         return;
     }
 
-    // Position and display the speech bubble
-    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`;
-    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`;
-    speechBubble.textContent = "Wähle einen Spieler aus"; // Prompt text
-    speechBubble.style.display = 'block';
+    console.log("Self Player Position:", selfPlayerPosition);
 
-    // Highlight the two other players
+    // Position and display the speech bubble
+    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`; // Adjust horizontal position
+    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`; // Adjust vertical position
+    speechBubble.textContent = "Entscheide dich, wen du ansprechen möchtest"; // Prompt text
+    speechBubble.style.display = 'block'; // Ensure it's visible
+    speechBubble.style.opacity = '1'; // Ensure opacity is set for visibility
+
+    console.log("Speech bubble displayed.");
+
+    // Highlight and make the two other players clickable
     selectedOthers.forEach(playerId => {
         const playerElement = document.getElementById(playerId);
-        if (!playerElement) return;
+        if (!playerElement) {
+            console.error(`Player element not found for ID: ${playerId}`);
+            return;
+        }
 
-        // Make the players clickable
+        // Ensure the player element is visible and interactive
+        playerElement.style.display = 'block'; // Ensure player is visible
+        playerElement.style.visibility = 'visible'; // Ensure visibility
+        playerElement.style.pointerEvents = 'auto'; // Enable interaction
+
+        // Make player clickable and highlight on hover
         playerElement.style.cursor = 'pointer';
+        playerElement.style.border = '2px solid blue'; // Optional: Highlight border for selection
+
+        // Add click event for the player
         playerElement.addEventListener('click', () => {
+            console.log(`Player ${playerId} clicked.`);
+
+            // Disable further interactions for all players
             selectedOthers.forEach(otherPlayerId => {
                 const otherElement = document.getElementById(otherPlayerId);
-                otherElement.style.cursor = 'default';
-                otherElement.style.pointerEvents = 'none'; // Disable further clicks
+                if (otherElement) {
+                    otherElement.style.cursor = 'default';
+                    otherElement.style.border = '2px solid transparent'; // Reset border
+                    otherElement.style.pointerEvents = 'none'; // Disable further clicks
+                }
             });
+
+            // Hide the speech bubble after selection
+            speechBubble.style.opacity = '0';
+            setTimeout(() => {
+                speechBubble.style.display = 'none';
+            }, 2000);
+
+            // Handle the player's choice
             handlePlayerChoice(playerId);
         }, { once: true }); // Ensure only one click is registered
     });
-
 }
 
 
@@ -1675,7 +1780,7 @@ function executeTossSequence(sequence, callback) {
 
 
 function tossBallToPosition(fromPosition, toPosition, callback) {
-    console.log(`Tossing ball from (${fromPosition.x}, ${fromPosition.y}) to (${toPosition.x}, ${toPosition.y})`);
+    console.log(`Tossing and animating ball from (${fromPosition.x}, ${fromPosition.y}) to (${toPosition.x}, ${toPosition.y})`);
     animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
         console.log("Ball reached destination.");
         if (callback) callback();
@@ -1730,10 +1835,6 @@ function startTossBetweenOthers(tossCount, callback) {
 
     toss(); // Start the toss sequence
 }
-
-
- 
-
 
 
 
@@ -1826,7 +1927,7 @@ function showFeedback(playerId, isRewarding, callback) {
             playerElement.style.opacity = '1'; // Show original player image
             if (callback) callback();
         }, 500); // Ensure it's hidden after fade-out
-    }, 3000); // Display duration for feedback
+    }, 4000); // Display duration for feedback
 }
 
 
@@ -1852,10 +1953,19 @@ function hidePromptAndContinue() {
     resumeGame();
 }
 
-
 function assignRewardingAndPunishingPlayers() {
+    console.log("Assigning rewarding and punishing players...");
+
+    // Validate selectedOthers
+    if (!selectedOthers || selectedOthers.length !== 2) {
+        console.error('Error: selectedOthers must contain exactly two players.', selectedOthers);
+        return;
+    }
+
     const leftPlayer = selectedOthers[0];
     const rightPlayer = selectedOthers[1];
+
+    console.log(`Left Player: ${leftPlayer}, Right Player: ${rightPlayer}`);
 
     // Update rewarding/punishing states every 12 and 24 trials
     if (currentTrial % leftPlayerChangeInterval === 0) {
@@ -1865,18 +1975,28 @@ function assignRewardingAndPunishingPlayers() {
         rightPlayerRewarding = Math.random() < 0.8; // 80:20 rewarding probability
     }
 
+    console.log(`Left Player Rewarding: ${leftPlayerRewarding}`);
+    console.log(`Right Player Rewarding: ${rightPlayerRewarding}`);
+
     // Assign roles based on the states
     roles.rewardingPlayers = [];
     roles.punishingPlayers = [];
-    if (leftPlayerRewarding) roles.rewardingPlayers.push(leftPlayer);
-    else roles.punishingPlayers.push(leftPlayer);
+    if (leftPlayerRewarding) {
+        roles.rewardingPlayers.push(leftPlayer);
+    } else {
+        roles.punishingPlayers.push(leftPlayer);
+    }
 
-    if (rightPlayerRewarding) roles.rewardingPlayers.push(rightPlayer);
-    else roles.punishingPlayers.push(rightPlayer);
+    if (rightPlayerRewarding) {
+        roles.rewardingPlayers.push(rightPlayer);
+    } else {
+        roles.punishingPlayers.push(rightPlayer);
+    }
 
-    console.log('Rewarding Players:', roles.rewardingPlayers);
-    console.log('Punishing Players:', roles.punishingPlayers);
+    console.log('Final Rewarding Players:', roles.rewardingPlayers);
+    console.log('Final Punishing Players:', roles.punishingPlayers);
 }
+
 
 
 
@@ -1949,28 +2069,21 @@ function checkMoodPrompt() {
     }
 }
 
-// Function to prompt the mood check
-function promptMoodCheck() {
-    pauseGame(); // Pause the game for the mood check
-    moodContainer.style.display = 'block';
 
-    document.getElementById('submitRatings').addEventListener('click', () => {
-        moodContainer.style.display = 'none';
-        resumeGame(); // Resume the game after mood check
-    }, { once: true }); // Ensure this handler runs only once per prompt
+
+
+
+// Function to check if it's time for a mood check
+function checkMoodPrompt() {
+    if (roundsUntilMoodCheck <= 0) {
+        promptMoodCheck();
+    } else {
+        roundsUntilMoodCheck--; // Decrement rounds counter
+    }
 }
 
-//Function to generate a random number of rounds for mood check
-    function getRandomRoundsForMoodCheck() {
-        return getRandomInt(3, 6); // Random number between 3 and 6
-    }
-  
-        // Restart the game
-        function restartGame() {
-        currentMoodTrial = 0;
-        roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
-        startBallToss(); // Restart the game after completing 25 trials
-    }
+
+
 
 </script>
 
