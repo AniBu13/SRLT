@@ -8,11 +8,15 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
             height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             background: url('park.png');
+            background-size: cover;
         }
 
         #gameContainer {
@@ -72,6 +76,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
             color: black;
             text-align: center;
         }
@@ -136,8 +141,14 @@
         }
 
         .instruction-content {
+            font-size: 30px;
+            line-height: 1.4;
             margin-bottom: 20px;
-            display:none
+            display:none;
+            background: rgba(255, 255, 255, 0.8); 
+            
+  padding: 15px;
+  border-radius: 10px;
         }
 
         .instruction-content:not(.hidden) {
@@ -165,6 +176,16 @@
             width: 80%;
             height: auto;
         }
+
+        /* Limit the video’s size inside your normal page layout */
+#video1, #video2, #video3 {
+  width: 600px;     /* or any fixed width you like */
+  height: auto;     /* keep aspect ratio */
+  max-width: 100%;  /* prevents overflowing on small screens */
+  display: block;   /* ensure it’s a block-level element */
+  margin: 20px auto;/* center it horizontally with some spacing */
+}
+
 
         #player1 {
             width: 300px;
@@ -386,69 +407,75 @@
 
 <body>
 
+    
     <div id="instructionContainer" class = "instructionContainer">
         <div class="instruction-content hidden" id="page1">
-            <h1>Willkommen zum sozialen Spiel</h1>
-            <p>Bevor es losgeht, zeige ich dir, wie das Spiel funktioniert.<br>Bitte achte darauf, dass dein Ton eingeschalten ist.<br>Los geht's!</p>
+            <h1>Willkommen zum Ballwurf Spiel</h1>
+            <p>Bevor es losgeht, zeige ich Dir, wie das Spiel funktioniert.<br>Bitte achte darauf, dass dein Ton eingeschalten ist.<br>Los geht's!</p>
             <audio id="audio1" src="audio1.m4a"></audio>
         </div>
-
+ <!-- Button to unlock audio -->
+ <button id="startAudioBtn" >Audio starten</button>
         <button id="nextButton1" class="button hidden">Weiter</button>
 
+        
         <div class="instruction-content hidden" id="page2">
-            <h2>Wähle deine Spieler</h2>
-            <div class="availablePlayers">
-                <p>Bitte suche deine Spieler aus. Erst musst ddu enstcheiden wer du sein möchtest.<br> Dann such die anderen zwei Spieler aus.</p>
-                <div id="availablePlayers">
-                    <img src="player1.png" data-player="player1" class="player-image" alt="Spieler 1">
-                    <img src="player2.png" data-player="player2" class="player-image" alt="Spieler 2">
-                    <img src="player3.png" data-player="player3" class="player-image" alt="Spieler 3">
-                    <img src="player4.png" data-player="player4" class="player-image" alt="Spieler 4">
-                    <img src="player5.png" data-player="player5" class="player-image" alt="Spieler 5">
-                    <img src="player6.png" data-player="player6" class="player-image" alt="Spieler 6">
-                </div>
-                <div id="chosenPlayers">
-                    <p id="chosenSelf">Deine Wahl: </p>
-                    <p id="chosenOthers">Andere Spieler: </p>
-                </div>
-            </div>
-        </div>
-        <button id="nextButton2" class="button hidden">Weiter</button>
-
-        <div class="instruction-content hidden" id="page3">
             <h2>Instruktionen</h2>
             <video id="video1" src="video1.mp4" controls></video>
         </div>
 
-        <button id="nextButton3" class="button hidden">Weiter</button>
+        <button id="nextButton2" class="button hidden">Weiter</button>
+
+        <div class="instruction-content hidden" id="page3">
+            <h2>Instruktionen</h2>
+            <video id="video2" src="video2.mp4" controls></video>
+        </div>
+
+        <button id="nextButton3"class="button hidden">Weiter</button>
 
         <div class="instruction-content hidden" id="page4">
             <h2>Instruktionen</h2>
-            <video id="video2" src="video2.mp4" controls></video>
+            <video id="video3" src="video3.mp4" controls></video>
         </div>
 
         <button id="nextButton4"class="button hidden">Weiter</button>
 
         <div class="instruction-content hidden" id="page5">
-            <h2>Instruktionen</h2>
-            <video id="video3" src="video3.mp4" controls></video>
+            <h1>Zusammenfassung </h1>Puh, das waren viele Informationen.<br>Hier noch einmal alles zusammengefasst:<br>Du triffst zwei Leute im Park und überlegst ob Du mitspielen möchtest. Wenn ja, musst Du dich entscheiden welchen der beiden Spieler Du fragst. <br> Entweder Du bekommst eine positive Antwort und darfst mitspielen oder Du wirst abgelehnt und aus dem Spiel ausgeschlossen. <br> Wenn Du dich entscheidest nicht mitzuspielen, musst Du einige Runden aussetzen.</p>
+            <p>
+            <audio id="audio3" src="audio3.m4a"></audio>
         </div>
 
         <button id="nextButton5"class="button hidden">Weiter</button>
 
-        <div class="instruction-content hidden" id="page6">
-            <h1>Zusammenfassung </h1>
-            <p>Puh, das waren viele Informationen.<br>Hier noch einmal alles zusammengefasst:.<br>Du triffst zwei Leute im Park und fragst sie ob du mitspielen darfst. Du musst dich entscheiden, welchen der beiden Spieler du fragst. <br> Entweder du bekommst eine positive Antwort und bekommst den Ball oder wirst abgelehnt und aus dem Spiel ausgeschlossen<br>Während des Spiels wirst du immer wieder gefragt wie es dir geht und wie aufgeregt du bist.</p>
-            <audio id="audio2" src="audio2.m4a"></audio>
-        </div>
-
-        <button id="nextButton6"class="button hidden">Weiter</button>
+    <div class="instruction-content hidden" id="page6">
+        <h1>Fragen?</h1>
+        <p>Ist noch etwas unklar? Dann frage jetzt Deinen Versuchsleiter.<br>Ansonsten viel Glück und Spaß beim Spielen!</p>
+        <audio id="audio4" src="audio4.m4a"></audio>
+    </div>
 
     <div class="instruction-content hidden" id="page7">
-        <h1>Fragen?</h1>
-        <p>Wenn noch etwas unklar ist, dann frag gerne deinen Versuchsleiter.<br>Ansonsten viel Spaß beim Spielen!</p>
-        <audio id="audio3" src="audio3.m4a"></audio>
+        <h2>Wähle deine Spieler</h2>
+        <div class="availablePlayers">
+            <p>Bitte suche Deine Spieler aus: erst wer Du sein möchtest (Selbst)<br> und dann deine Mitspieler.<br>
+            Du musst genau 3 Spieler auswählen.</p>
+            <audio id ="audio2" src="audio2.m4a"></audio>
+            <div id="availablePlayers">
+                <img src="player1.png" data-player="player1" class="player-image" alt="Spieler 1">
+                <img src="player2.png" data-player="player2" class="player-image" alt="Spieler 2">
+                <img src="player3.png" data-player="player3" class="player-image" alt="Spieler 3">
+                <img src="player4.png" data-player="player4" class="player-image" alt="Spieler 4">
+                <img src="player5.png" data-player="player5" class="player-image" alt="Spieler 5">
+                <img src="player6.png" data-player="player6" class="player-image" alt="Spieler 6">
+            </div>
+            <div id="chosenPlayers">
+                <p id="chosenSelf">Deine Wahl: </p>
+                <p id="chosenOthers">Andere Spieler: </p>
+            </div>
+        </div>
     </div>
+    <button id="nextButton6" class="button hidden">Weiter</button>
+
 
     <button id="startGameButtonPage7" class="button hidden">Spiel starten</button>
 </div>
@@ -470,14 +497,14 @@
 </div>
 
 <div id="metaQuestionContainer" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 8px;">
-    <p>Willst du weiterspielen?</p>
+    <p>Willst Du versuchen mitzuspielen?</p>
     <button id="continueYes">Ja</button>
     <button id="continueNo">Nein</button>
 </div>
 
    
     <div class="choose-player" style="position: absolute; top: calc(50% + 150px); left: 50%; transform: translateX(-50%); display: none;">
-        <p>Entscheide dich, welchen der Spieler du ansprechen möchtest:</p>
+        <p>Entscheide, wen Du ansprechen willst.</p>
         <div id="playerOptionsContainer">
             <img src="player1.png" data-player="player1" alt="Player 1" />
             <img src="player2.png" data-player="player2" alt="Player 2" />
@@ -492,13 +519,13 @@
     
 
     <div class="sliderContainer" id="moodContainer">
-        <label for="mood">Wie geht es dir gerade? (0-100):</label>
-        <input type="range" id="mood" name="mood" min="0" max="100">
+        <label for="mood">Wie geht es Dir gerade? (-50-50):</label>
+        <input type="range" id="mood" name="mood" min="-50" max="50">
         <div style="display: flex; justify-content: space-between;">
             <span>Sehr schlecht (-50)</span>
             <span>Sehr gut (50)</span>
         </div>
-        <label for="excitement">Wie aufgeregt bist du gerade? (0-100):</label>
+        <label for="excitement">Wie aufgeregt bist Du gerade? (0-100):</label>
         <input type="range" id="excitement" name="excitement" min="0" max="100">
         <div style="display: flex; justify-content: space-between;">
             <span>Überhaupt nicht (0)</span>
@@ -633,7 +660,7 @@ const rightPlayerChangeInterval = 24;
 
     const trialsPerPositionChange = 10; // Change positions every 10 trials
 const frameDuration = 100; // Duration of each animation frame in milliseconds
-const tossDuration = 2500; // Ball flight duration in milliseconds
+const tossDuration = 1000; // Ball flight duration in milliseconds
 const pauseAfterCatch = 10; // Pause after catch animation in milliseconds
 const pauseAfterThrow = 100; // Pause before the next throw in milliseconds
 
@@ -663,39 +690,200 @@ let roles = {
 
 const playerIds = Object.keys(playerData);
 
-
-// Function to show instructions and then player options
-function showPage(pageNumber) {
-    for (let i = 1; i <= totalPages; i++) {
-        const page = document.getElementById(`page${i}`);
-        const button = document.getElementById(`nextButton${i}`);
-        
-        if (i === pageNumber) {
-            page.classList.remove('hidden');
-            if (i < totalPages) {
-                button.classList.remove('hidden');
-            } else if (i === totalPages) {
-                instructionsCompleted = true;
-                // Show the player selection after the last instruction page
-                document.getElementById('playerOptionsContainer').style.display = 'flex';
-            }
-        } else {
-            page.classList.add('hidden');
-            if (button) button.classList.add('hidden');
+ /* --- Player -> gender check for audio selection --- */
+ function getGenderFromPlayerId(playerId) {
+            // Players 1,2,3 → male; 4,5,6 → female
+            const numericId = parseInt(playerId.replace('player',''), 10);
+            // If numericId <= 3 → male, else female
+            return (numericId <= 3) ? 'male' : 'female';
         }
+
+        /* --- Return the correct audio path based on isRewarding & gender --- */
+        function getAudioPath(isRewarding, gender) {
+            if (isRewarding && gender === 'male')   return 'reward_male.m4a';
+            if (isRewarding && gender === 'female') return 'reward_female.m4a';
+            if (!isRewarding && gender === 'male')  return 'punish_male.m4a';
+            if (!isRewarding && gender === 'female')return 'punish_female.m4a';
+            // fallback
+            return 'reward_male.m4a';
+        }
+function requestVideoFullscreen(videoEl, nextBtnEl) {
+  if (!videoEl) return;
+
+  // Request fullscreen
+  if (videoEl.requestFullscreen) {
+    videoEl.requestFullscreen().catch(err => console.log("Fullscreen blocked:", err));
+  } else if (videoEl.webkitRequestFullscreen) {
+    videoEl.webkitRequestFullscreen();
+  } else if (videoEl.msRequestFullscreen) {
+    videoEl.msRequestFullscreen();
+  }
+
+  // Attempt autoplay
+  videoEl.play().catch(err => console.log("Video play blocked:", err));
+
+  // Once video ends, exit fullscreen and show the "Weiter" button
+  function handleEnded() {
+    videoEl.removeEventListener('ended', handleEnded);
+
+    // Exit fullscreen
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
     }
+
+    // Now that fullscreen is exited, the normal HTML is visible again
+    nextBtnEl.style.display = 'inline-block';
+  }
+
+  videoEl.addEventListener('ended', handleEnded);
 }
 
-// Event listener for "Weiter" buttons to navigate pages
-for (let i = 1; i <= totalPages; i++) {
-    const button = document.getElementById(`nextButton${i}`);
-    if (button) {
-        button.addEventListener('click', () => {
-            currentPage++;
-            showPage(currentPage);
-        });
+
+// --- Grab references ---
+const page1 = document.getElementById('page1');
+  const page2 = document.getElementById('page2');
+  const page3 = document.getElementById('page3');
+  const page4 = document.getElementById('page4');
+  const page5 = document.getElementById('page5');
+  const page6 = document.getElementById('page6');
+  const page7 = document.getElementById('page7');
+
+
+  const startAudioBtn = document.getElementById('startAudioBtn');
+  const nextButton1   = document.getElementById('nextButton1');
+  const nextButton2   = document.getElementById('nextButton2');
+  const nextButton3   = document.getElementById('nextButton3');
+  const nextButton4   = document.getElementById('nextButton4');
+  const nextButton5   = document.getElementById('nextButton5');
+  const nextButton6   = document.getElementById('nextButton6');
+
+
+  // Audios
+  const audio1 = document.getElementById('audio1');
+  const audio2 = document.getElementById('audio2');
+  const audio3 = document.getElementById('audio3');
+  const audio4 = document.getElementById('audio4');
+
+  // ========== showPage FUNCTION ==========
+  function showPage(pageNumber) {
+    for (let i = 1; i <= totalPages; i++) {
+      const pageEl  = document.getElementById(`page${i}`);
+      const nextBtn = document.getElementById(`nextButton${i}`);
+      if (!pageEl) continue;
+
+      if (i === pageNumber) {
+        pageEl.classList.remove('hidden');
+        pageEl.style.display = 'block';
+        if (nextBtn) {
+          nextBtn.classList.remove('hidden');
+          nextBtn.style.display = 'inline-block';
+        }
+        if (i === 7) {
+          startGameButtonPage7.classList.remove('hidden');
+          startGameButtonPage7.style.display = 'inline-block';
+        } else {
+          startGameButtonPage7.classList.add('hidden');
+          startGameButtonPage7.style.display = 'none';
+        }
+
+        // Autoplay correct audio if unlocked
+        if (audioUnlocked) {
+          if (pageNumber === 1) {
+            audio1.currentTime = 0;
+            audio1.play().catch(err => console.log("Audio1 blocked:", err));
+          } 
+          else if (pageNumber === 5) {
+            audio3.currentTime = 0;
+            audio3.play().catch(err => console.log("Audio3 blocked:", err));
+          }
+          else if (pageNumber === 6) {
+            audio4.currentTime = 0;
+            audio4.play().catch(err => console.log("Audio4 blocked:", err));
+          }
+          else if (pageNumber === 7) {
+            audio2.currentTime = 0;
+            audio2.play().catch(err => console.log("Audio2 blocked:", err));
+          }
+        }
+
+        // Fullscreen for video pages 2,3,4
+        if (pageNumber === 2) {
+          requestVideoFullscreen(video1);
+        } else if (pageNumber === 3) {
+          requestVideoFullscreen(video2);
+        } else if (pageNumber === 4) {
+          requestVideoFullscreen(video3);
+        }
+
+      } else {
+        pageEl.classList.add('hidden');
+        pageEl.style.display = 'none';
+        if (nextBtn) {
+          nextBtn.classList.add('hidden');
+          nextBtn.style.display = 'none';
+        }
+      }
     }
-}
+  }
+
+  // ========== INITIAL SETUP ==========
+  document.addEventListener('DOMContentLoaded', () => {
+    showPage(currentPage);
+    // Show audio-start button & Weiter on page1
+    startAudioBtn.style.display = 'inline-block';
+    nextButton1.style.display   = 'inline-block';
+  });
+
+  // ========== EVENT LISTENERS ==========
+
+  // "Audio starten" on page 1
+  startAudioBtn.addEventListener('click', () => {
+    audioUnlocked = true;
+    startAudioBtn.disabled = true;
+    audio1.currentTime = 0;
+    audio1.play()
+      .then(() => {
+        console.log("audio1 playback started");
+        nextButton1.disabled = false; // now user can press "Weiter"
+      })
+      .catch(err => console.log("audio1 blocked:", err));
+  });
+
+  // Next page navigation
+  nextButton1.addEventListener('click', () => {
+    currentPage = 2;
+    showPage(currentPage);
+  });
+  nextButton2.addEventListener('click', () => {
+    currentPage = 3;
+    showPage(currentPage);
+  });
+  nextButton3.addEventListener('click', () => {
+    currentPage = 4;
+    showPage(currentPage);
+  });
+  nextButton4.addEventListener('click', () => {
+    currentPage = 5;
+    showPage(currentPage);
+  });
+  nextButton5.addEventListener('click', () => {
+    currentPage = 6;
+    showPage(currentPage);
+  });
+  nextButton6.addEventListener('click', () => {
+    currentPage = 7;
+    showPage(currentPage);
+  });
+  // If you want a nextButton7 -> page 8, do so here
+  // nextButton7.addEventListener('click', ...);
+
+  // "Spiel starten" on page 7
+  startGameButtonPage7.addEventListener('click', () => {
+    alert("Spiel startet jetzt...");
+    // Hide instructions, show game container, etc.
+  });
 
 document.querySelectorAll('#availablePlayers .player-image').forEach(image => {
     image.addEventListener('click', function (event) {
@@ -728,8 +916,10 @@ document.querySelectorAll('#availablePlayers .player-image').forEach(image => {
     });
 });
 
-// Event listener for Start Game button
-startGameButtonPage7.addEventListener('click', startGame);
+  // Clicking "Spiel starten" on page 7
+  startGameButtonPage7.addEventListener('click', () => {
+    startGame();
+  });
 
  // Hide feedback images initially
  document.querySelectorAll('#feedbackImageContainer img').forEach(img => {
@@ -1313,72 +1503,106 @@ let metaQuestionCount = 0; // Counts the number of meta questions
 const moodCheckThreshold = 12; // Mood check happens after every 12 meta questions
 
 function showMetaQuestion() {
-    console.log(`Meta Question Count: ${metaQuestionCount}`);
-    pauseGame(); // Pause the game while showing the meta question
-
+    pauseGame();
     const metaQuestionContainer = document.getElementById('metaQuestionContainer');
     metaQuestionContainer.style.display = 'block';
 
-    // Clear existing listeners to prevent duplicates
+    // Clear old listeners first
     clearMetaQuestionListeners();
 
-    // Handle "Yes" response
+    // Grab newly cloned buttons
     const yesButton = document.getElementById('continueYes');
-    yesButton.addEventListener('click', () => {
-        console.log("Meta question answered: Yes");
-        metaQuestionContainer.style.display = 'none';
+    const noButton  = document.getElementById('continueNo');
 
-        incrementMetaQuestionCount();
+    yesButton.addEventListener('click', () => {
+        metaQuestionContainer.style.display = 'none';
+        // "true" => user clicked Yes => pass true
+        incrementMetaQuestionCount(true); 
     });
 
-    // Handle "No" response
-    const noButton = document.getElementById('continueNo');
     noButton.addEventListener('click', () => {
-        console.log("Meta question answered: No");
         metaQuestionContainer.style.display = 'none';
+        // "false" => user clicked No => pass false
+        incrementMetaQuestionCount(false);
 
-        incrementMetaQuestionCount();
+        // For example: toss 10 times among other players, then re-ask
+        startTossBetweenOthers(10, () => {
+            showMetaQuestion();
+        });
     });
 }
 
-function incrementMetaQuestionCount() {
-    metaQuestionCount++; // Increment the counter
+// Make sure we accept the parameter chosenYes here
+function incrementMetaQuestionCount(chosenYes) {
+    metaQuestionCount++;
+    console.log("Incrementing metaQuestionCount to", metaQuestionCount);
+
     if (metaQuestionCount === moodCheckThreshold) {
         console.log("Triggering mood check...");
         metaQuestionCount = 0; // Reset after mood check
+
+        // Do mood check
         promptMoodCheck(() => {
-            console.log("Mood check completed. Prompting player choice...");
-            promptPlayerChoice(); // Prompt player choice after mood check
+            console.log("Mood check completed.");
+            // Only prompt player choice if chosenYes was true
+            if (chosenYes) {
+                promptPlayerChoice();
+            }
         });
-    } else {
-        console.log(`Proceeding without mood check. Current count: ${metaQuestionCount}`);
-        promptPlayerChoice(); // Always show player choice after meta question
+    } 
+    else {
+        // If we haven't hit the threshold, do we prompt the choice?
+        if (chosenYes) {
+            console.log(`Proceeding without mood check. Current count: ${metaQuestionCount}`);
+            promptPlayerChoice();
+        }
     }
 }
 
+
+
 function promptMoodCheck(callback) {
-    console.log("Prompting mood check...");
-    const moodContainer = document.getElementById('moodContainer');
-    moodContainer.style.display = 'block';
-    gamePaused = true; // Pause the game during the mood check
+  // 1) Pause the game
+  gamePaused = true;
 
-    // Wait for the user to submit their mood ratings
-    document.getElementById('submitRatings').addEventListener(
-        'click',
-        () => {
-            const mood = document.getElementById('mood').value;
-            const excitement = document.getElementById('excitement').value;
+  // 2) Clear the ball toss interval so it doesn't keep running
+  if (ballTossInterval) {
+    clearInterval(ballTossInterval);
+    ballTossInterval = null;
+  }
 
-            console.log("Mood Submitted:", { mood, excitement });
+  // 3) Show the mood sliders
+  const moodContainer = document.getElementById('moodContainer');
+  moodContainer.style.display = 'block';
 
-            // Hide the mood container and resume the game
-            moodContainer.style.display = 'none';
-            gamePaused = false;
-            if (callback) callback(); // Proceed with the next action after mood check
-        },
-        { once: true } // Ensure this listener only runs once
-    );
+  // 4) Listen for the "Abschicken" click
+  const submitBtn = document.getElementById('submitRatings');
+  
+  // We'll remove and re-add the listener each time to avoid duplication
+  const onSubmit = () => {
+    submitBtn.removeEventListener('click', onSubmit);
+
+    // Collect slider values (optional)
+    const mood = document.getElementById('mood').value;
+    const excitement = document.getElementById('excitement').value;
+    console.log("Mood Submitted:", { mood, excitement });
+
+    // 5) Hide mood sliders
+    moodContainer.style.display = 'none';
+
+    // 6) Resume the game
+    gamePaused = false;
+    
+    // 7) If you want to continue tossing the ball automatically:
+    startBallToss();
+    
+    // 8) Or if you have further logic, call the callback
+    if (callback) callback();
+  };
+
+  submitBtn.addEventListener('click', onSubmit);
 }
+
 
 
 function clearMetaQuestionListeners() {
@@ -1788,10 +2012,9 @@ function tossBallToPosition(fromPosition, toPosition, callback) {
 }
 
 
-function startTossBetweenOthers(tossCount, callback) { 
+function startTossBetweenOthers(tossCount, callback) {
     console.log(`Starting ${tossCount} tosses between other players...`);
     let currentToss = 0;
-
     const playerA = selectedOthers[0];
     const playerB = selectedOthers[1];
 
@@ -1799,44 +2022,31 @@ function startTossBetweenOthers(tossCount, callback) {
         if (currentToss >= tossCount) {
             console.log(`Completed ${tossCount} tosses.`);
             if (callback) {
-                pauseGame(); // Pause the game after tosses
+                pauseGame(); 
                 callback();
             }
             return;
         }
-
-        const fromPlayer = currentToss % 2 === 0 ? playerA : playerB;
-        const toPlayer = currentToss % 2 === 0 ? playerB : playerA;
-
-        const fromPosition = playerPositions[fromPlayer];
-        const toPosition = playerPositions[toPlayer];
-        const directionTo = getDirection(fromPosition.x, toPosition.x);
-        const directionFrom = getDirection(toPosition.x, fromPosition.x);
+        const fromPlayer = (currentToss % 2 === 0) ? playerA : playerB;
+        const toPlayer   = (currentToss % 2 === 0) ? playerB : playerA;
+        
+        const fromPos = playerPositions[fromPlayer];
+        const toPos   = playerPositions[toPlayer];
+        const directionTo   = getDirection(fromPos.x, toPos.x);
+        const directionFrom = getDirection(toPos.x, fromPos.x);
 
         console.log(`Tossing ball from ${fromPlayer} to ${toPlayer}`);
-
-        
-
-            // Step 2: Animate the ball movement
-            animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
-                console.log(`Ball reached ${toPlayer}`);
-
-                // Step 3: Play catch animation for the receiving player
-                playCatchAnimation(toPlayer, directionFrom, () => {
-                    console.log(`Catch animation completed for ${toPlayer}`);
-
-                    // Step 4: Increment toss count and proceed to the next toss
-                    currentToss++;
-                    toss(); // Start the next toss immediately
-                });
+        animateBall(fromPos.x, fromPos.y, toPos.x, toPos.y, () => {
+            console.log(`Ball reached ${toPlayer}`);
+            playCatchAnimation(toPlayer, directionFrom, () => {
+                console.log(`Catch animation completed for ${toPlayer}`);
+                currentToss++;
+                toss();
             });
-        };
-    
-
-    toss(); // Start the toss sequence
+        });
+    }
+    toss();
 }
-
-
 
 
 function tossToOtherPlayerUntilMeta(callback) {
@@ -1863,73 +2073,65 @@ function tossToOtherPlayerUntilMeta(callback) {
     tossBetweenTwo(); // Start the toss sequence
 }
 
-function showFeedback(playerId, isRewarding, callback) {
-    const feedbackImgId = `${playerId}_${isRewarding ? 'reward' : 'punish'}`;
-    const feedbackImg = document.getElementById(feedbackImgId);
-    const playerElement = document.getElementById(playerId);
-    const feedbackAudio = isRewarding ? rewardAudio2 : punishAudio;
-    const speechBubble = document.getElementById('speechBubble');
-    const feedbackMessage = isRewarding
-        ? "Ja gerne, komm spiel mit uns mit."
-        : "Nein, geh weg! Ich habe keine Lust mit dir zu spielen.";
+ /* --- Show feedback image + play appropriate audio + speech bubble --- */
+ function showFeedback(playerId, isRewarding, callback) {
+            const feedbackImgId = `${playerId}_${isRewarding ? 'reward' : 'punish'}`;
+            const feedbackImg = document.getElementById(feedbackImgId);
+            const playerEl   = document.getElementById(playerId);
 
-    if (!feedbackImg || !playerElement) {
-        console.error(`Feedback image or player element not found for ${playerId}`);
-        if (callback) callback(); // Proceed even if there's an issue
-        return;
-    }
+            if (!feedbackImg || !playerEl) {
+                if (callback) callback();
+                return;
+            }
+            // Determine audio based on gender & rewarding
+            const gender = getGenderFromPlayerId(playerId);
+            const audioPath = getAudioPath(isRewarding, gender);
+            const feedbackAudio = new Audio(audioPath);
 
-    // Get the exact position of the player on the screen
-    const playerRect = playerElement.getBoundingClientRect();
-    const playerPosition = {
-        x: playerRect.left + window.scrollX,
-        y: playerRect.top + window.scrollY,
-        width: playerRect.width,
-        height: playerRect.height,
-    };
+            // Text in the bubble
+            const feedbackMessage = isRewarding
+                ? "Ja gerne, komm spiel mit uns!"
+                : "Nein, Du darfst nicht mitspielen!";
 
-    // Blend out the original player image
-    playerElement.style.transition = 'opacity 0.5s ease'; // Smooth blend-out effect
-    playerElement.style.opacity = '0'; // Hide original player image
+            // Position the feedback image over the player
+            const rect = playerEl.getBoundingClientRect();
+            const playerPosition = {
+                x: rect.left + window.scrollX,
+                y: rect.top  + window.scrollY,
+                width: rect.width,
+                height: rect.height
+            };
 
-    // Position feedback image exactly over the player
-    feedbackImg.style.position = 'absolute';
-    feedbackImg.style.left = `${playerPosition.x}px`;
-    feedbackImg.style.top = `${playerPosition.y}px`;
-    feedbackImg.style.width = `${playerPosition.width}px`;
-    feedbackImg.style.height = `${playerPosition.height}px`;
-    feedbackImg.style.display = 'block';
-    feedbackImg.style.transition = 'opacity 0.5s ease'; // Smooth blend effect
-    feedbackImg.style.opacity = '1';
+            playerEl.style.opacity = '0';
+            feedbackImg.style.position = 'absolute';
+            feedbackImg.style.left = `${playerPosition.x}px`;
+            feedbackImg.style.top  = `${playerPosition.y}px`;
+            feedbackImg.style.width  = `${playerPosition.width}px`;
+            feedbackImg.style.height = `${playerPosition.height}px`;
+            feedbackImg.style.display = 'block';
+            feedbackImg.style.opacity = '1';
 
-    // Position the speech bubble slightly above the player
-    speechBubble.style.position = 'absolute';
-    speechBubble.style.left = `${playerPosition.x + playerPosition.width / 2 - 100}px`; // Center horizontally
-    speechBubble.style.top = `${playerPosition.y - 60}px`; // Slightly above the player
-    speechBubble.textContent = feedbackMessage;
-    speechBubble.style.display = 'block';
-    speechBubble.style.transition = 'opacity 0.5s ease'; // Smooth blend effect
-    speechBubble.style.opacity = '1';
+            // Speech bubble above the player
+            speechBubble.style.left = `${playerPosition.x + (playerPosition.width / 2) - 100}px`;
+            speechBubble.style.top  = `${playerPosition.y - 60}px`;
+            speechBubble.textContent = feedbackMessage;
+            speechBubble.style.display = 'block';
+            speechBubble.style.opacity = '1';
 
-    // Play the feedback audio
-    feedbackAudio.play();
+            // Play audio
+            feedbackAudio.play().catch(err => console.log("Audio play blocked:", err));
 
-    // Blend out feedback image and speech bubble after a delay
-    setTimeout(() => {
-        feedbackImg.style.opacity = '0'; // Blend out feedback image
-        speechBubble.style.opacity = '0'; // Blend out speech bubble
-
-        setTimeout(() => {
-            feedbackImg.style.display = 'none';
-            speechBubble.style.display = 'none';
-
-            // Restore original player image after feedback
-            playerElement.style.opacity = '1'; // Show original player image
-            if (callback) callback();
-        }, 500); // Ensure it's hidden after fade-out
-    }, 4000); // Display duration for feedback
-}
-
+            setTimeout(() => {
+                feedbackImg.style.opacity = '0';
+                speechBubble.style.opacity = '0';
+                setTimeout(() => {
+                    feedbackImg.style.display = 'none';
+                    speechBubble.style.display = 'none';
+                    playerEl.style.opacity = '1';
+                    if (callback) callback();
+                }, 500);
+            }, 4000); // Show for ~4s
+        }
 
 // Function to select the next player in `selectedOthers`, avoiding self-player
 function selectNextOtherPlayer(currentPlayerId) {
@@ -1953,49 +2155,56 @@ function hidePromptAndContinue() {
     resumeGame();
 }
 
+let leftRewardProbability = 0.8;
+let rightRewardProbability = 0.2;
+let leftReversed  = false;  // Has left player done its single flip?
+let rightReversed = false;  // Has right player done its single flip?
+
+
+
 function assignRewardingAndPunishingPlayers() {
-    console.log("Assigning rewarding and punishing players...");
-
-    // Validate selectedOthers
-    if (!selectedOthers || selectedOthers.length !== 2) {
-        console.error('Error: selectedOthers must contain exactly two players.', selectedOthers);
-        return;
+    // If currentTrial >= 12 and we haven't reversed the left side yet, do so:
+    if (!leftReversed && currentTrial >= 12) {
+        console.log("Left side reversing from 80% to 20%.");
+        leftRewardProbability = 0.2;
+        leftReversed = true;
+    }
+    // If currentTrial >= 24 and we haven't reversed the right side yet, do so:
+    if (!rightReversed && currentTrial >= 24) {
+        console.log("Right side reversing from 20% to 80%.");
+        rightRewardProbability = 0.8;
+        rightReversed = true;
     }
 
-    const leftPlayer = selectedOthers[0];
-    const rightPlayer = selectedOthers[1];
+    // "Draw" if left or right is rewarding (random < probability)
+    leftPlayerRewarding  = (Math.random() < leftRewardProbability);
+    rightPlayerRewarding = (Math.random() < rightRewardProbability);
 
-    console.log(`Left Player: ${leftPlayer}, Right Player: ${rightPlayer}`);
-
-    // Update rewarding/punishing states every 12 and 24 trials
-    if (currentTrial % leftPlayerChangeInterval === 0) {
-        leftPlayerRewarding = Math.random() < 0.8; // 80:20 rewarding probability
-    }
-    if (currentTrial % rightPlayerChangeInterval === 0) {
-        rightPlayerRewarding = Math.random() < 0.8; // 80:20 rewarding probability
-    }
-
-    console.log(`Left Player Rewarding: ${leftPlayerRewarding}`);
-    console.log(`Right Player Rewarding: ${rightPlayerRewarding}`);
-
-    // Assign roles based on the states
+    // Now fill the roles array
     roles.rewardingPlayers = [];
     roles.punishingPlayers = [];
+
+    // We assume selectedOthers[0] = left, [1] = right
+    const leftPlayer  = selectedOthers[0];
+    const rightPlayer = selectedOthers[1];
+
     if (leftPlayerRewarding) {
         roles.rewardingPlayers.push(leftPlayer);
     } else {
         roles.punishingPlayers.push(leftPlayer);
     }
-
     if (rightPlayerRewarding) {
         roles.rewardingPlayers.push(rightPlayer);
     } else {
         roles.punishingPlayers.push(rightPlayer);
     }
 
-    console.log('Final Rewarding Players:', roles.rewardingPlayers);
-    console.log('Final Punishing Players:', roles.punishingPlayers);
+    console.log("Left Probability =", leftRewardProbability, 
+                "Right Probability =", rightRewardProbability,
+                "Rewarding =", roles.rewardingPlayers, 
+                "Punishing =", roles.punishingPlayers);
 }
+
 
 
 
