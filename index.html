@@ -313,7 +313,7 @@
 
     #moodContainer {
             position: absolute; /* Overlay it on top of gameContainer */
-            z-index: 10; /* Higher value to ensure it appears above */
+            z-index: 10000; /* Higher value to ensure it appears above */
             background: white; /* Optional: to ensure it's readable */
             padding: 20px; /* Optional: some padding for aesthetics */
             border-radius: 8px; /* Optional: round corners */
@@ -675,7 +675,7 @@ const rightPlayerChangeInterval = 24;
 const frameDuration = 50; // Duration of each animation frame in milliseconds
 const tossDuration = 500; // Ball flight duration in milliseconds
 const pauseAfterCatch = 10; // Pause after catch animation in milliseconds
-const pauseAfterThrow = 100; // Pause before the next throw in milliseconds
+const pauseAfterThrow = 10; // Pause before the next throw in milliseconds
 
 let tossCount = 0;
 let maxTossesBeforeChoice = getRandomInt(3, 6);
@@ -1071,6 +1071,22 @@ function getPlayerPosition(playerId) {
 
 let currentPlayerIndex = 0; // Initialize it to 0 or another value
 
+function showSpeechBubble(message, duration = 2000) {
+    const speechBubble = document.getElementById('speechBubble');
+    if (!speechBubble) {
+        console.error("Speech bubble element not found!");
+        return;
+    }
+    speechBubble.textContent = message;
+    // Temporarily center the speech bubble for debugging:
+    speechBubble.style.left = '50%';
+    speechBubble.style.top = '50%';
+    speechBubble.style.transform = 'translate(-50%, -50%)';
+    speechBubble.style.display = 'block';
+    setTimeout(() => {
+        speechBubble.style.display = 'none';
+    }, duration);
+}
 
 // Ensure `selectedOthers` has exactly two players before starting the game
 function startGame() {
@@ -1099,12 +1115,21 @@ function startGame() {
     roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
 }
 
-// Function to get a random number of rounds for the mood check
-function getRandomRoundsForMoodCheck() {
-    const randomRounds = Math.floor(Math.random() * (6 - 3 + 1)) + 3; // Random number between 3 and 6
-    console.log(`New mood check interval set: ${randomRounds} meta questions`);
-    return randomRounds;
+
+function checkSelectedOthers() {
+    if (!selectedOthers || selectedOthers.length !== 2) {
+        console.error("selectedOthers is invalid:", selectedOthers);
+        return false;
+    }
+    console.log("selectedOthers contains the expected players:", selectedOthers);
+    return true;
 }
+
+
+
+let roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+
+
 
 
 
@@ -1116,7 +1141,7 @@ function getRandomInt(min, max) {
 // Function to reset toss counter and set a new threshold for the next prompt
 function resetTossCounter() {
     tossCount = 0;  // Reset the toss counter
-    maxTossesBeforePrompt = getRandomInt(3, 6);  // Set a new random threshold
+    maxTossesBeforePrompt = getRandomInt(1, 3);  // Set a new random threshold
 }
 // Initialize current and last player for alternating tosses
 let currentPlayerId;
@@ -1124,13 +1149,11 @@ let lastPlayerId;
 
 
 
-let maxTossesBeforeMeta = getRandomInt(3, 6); // Random toss count between 3 and 6
+let maxTossesBeforeMeta = getRandomInt(1, 3); // Random toss count between 3 and 6
 
-
-
-function startBallToss() {
-    if (gamePaused || isAnimationPlaying) {
-        console.log("Game is paused or animation is playing, not starting ball toss.");
+function startBallToss() { 
+    if (gamePaused || isAnimationPlaying || choicePromptActive) {
+        console.log("Game is paused, animation is playing, or player choice is active; not starting ball toss.");
         return;
     }
 
@@ -1141,34 +1164,15 @@ function startBallToss() {
 
             // Reset toss counter and set a new random toss limit
             tossCount = 0;
-            maxTossesBeforeMeta = getRandomInt(3, 6);
-
-            // Increment meta question count
-            metaQuestionCount++;
-
-            console.log(`Meta Question Count: ${metaQuestionCount}, Rounds Until Mood Check: ${roundsUntilMoodCheck}`);
-
-            // Check if it's time for a mood check
-            if (metaQuestionCount >= roundsUntilMoodCheck) {
-                console.log("Prompting mood check before meta question...");
-                promptMoodCheck(() => {
-                    console.log("Mood check completed. Showing meta question...");
-                    metaQuestionCount = 0; // Reset the count after mood check
-                    roundsUntilMoodCheck = getRandomRoundsForMoodCheck(); // Set new interval
-                    showMetaQuestion(); // Show the meta question
-                    startBallToss(); // Resume ball toss after meta question
-                });
-            } else {
-                console.log("Showing meta question...");
-                showMetaQuestion(); // Show the meta question if no mood check
-                startBallToss(); // Resume ball toss after meta question
-            }
+            maxTossesBeforeMeta = getRandomInt(1, 3);
+            
+            // Call incrementMetaQuestionCount (it handles updating the counter)
+            incrementMetaQuestionCount(false);
             return;
         }
 
         // Toss ball to the next player
         const nextPlayer = selectedOthers.find(player => player !== currentPlayerId);
-
         if (nextPlayer) {
             console.log(`Tossing ball to next player: ${nextPlayer}`);
             tossBallToPlayer(currentPlayerId, nextPlayer);
@@ -1179,6 +1183,7 @@ function startBallToss() {
         }
     }, tossDuration + frameDuration * 4);
 }
+
 
 
 function selectRandomPlayer(players) {
@@ -1406,67 +1411,6 @@ function playAnimation(playerId, action, direction, callback) {
 
     playFrame(); // Start the animation
 }
-function tossBallToSelf(fromPlayerId, callback) {
-    const fromPlayerPosition = playerPositions[fromPlayerId];
-    const selfPlayerPosition = playerPositions[selectedSelf];
-    const ball = document.getElementById('ball');
-
-    if (!fromPlayerPosition || !selfPlayerPosition) {
-        console.error(`Invalid positions for ${fromPlayerId} or self-player`);
-        return;
-    }
-
-    console.log(`Tossing ball from ${fromPlayerId} to self-player`);
-
-    // Determine direction based on the incoming ball
-    const directionToSelf = fromPlayerPosition.x < selfPlayerPosition.x ? 'right' : 'left';
-
-    // Step 1: Play throw animation for the throwing player
-    playThrowAnimation(fromPlayerId, directionToSelf, () => {
-        // Step 2: Animate ball movement to self-player
-        animateBall(
-            fromPlayerPosition.x,
-            fromPlayerPosition.y,
-            selfPlayerPosition.x,
-            selfPlayerPosition.y,
-            () => {
-                console.log("Ball reached self-player.");
-
-                // Step 3: Play catch animation for self-player
-                playCatchAnimation(selectedSelf, directionToSelf, () => {
-                    console.log("Self-player caught the ball.");
-
-                    // Determine the direction for throwing the ball to the other player
-                    const otherPlayer = selectedOthers.find(p => p !== fromPlayerId);
-                    const otherPlayerPosition = playerPositions[otherPlayer];
-                    const directionToOther = selfPlayerPosition.x < otherPlayerPosition.x ? 'right' : 'left';
-
-                    console.log(`Tossing ball from self-player to ${otherPlayer}`);
-
-                    // Step 4: Play throw animation for the self-player
-                    playThrowAnimation(selectedSelf, directionToOther, () => {
-                        // Step 5: Animate ball movement to the other player
-                        animateBall(
-                            selfPlayerPosition.x,
-                            selfPlayerPosition.y,
-                            otherPlayerPosition.x,
-                            otherPlayerPosition.y,
-                            () => {
-                                console.log(`Ball reached ${otherPlayer}.`);
-
-                                // Step 6: Play catch animation for the receiving player
-                                playCatchAnimation(otherPlayer, directionToOther, () => {
-                                    console.log(`${otherPlayer} caught the ball.`);
-                                    if (callback) callback(); // Proceed with the next steps
-                                });
-                            }
-                        );
-                    });
-                });
-            }
-        );
-    });
-}
 
 
 
@@ -1529,6 +1473,429 @@ function restoreOriginalSelfPlayerImage() {
 }
 
 
+function clearMetaQuestionListeners() {
+    const yesButton = document.getElementById('continueYes');
+    const noButton = document.getElementById('continueNo');
+
+    // Replace buttons with clones to remove all existing listeners
+    const newYesButton = yesButton.cloneNode(true);
+    const newNoButton = noButton.cloneNode(true);
+
+    yesButton.parentNode.replaceChild(newYesButton, yesButton);
+    noButton.parentNode.replaceChild(newNoButton, noButton);
+}
+
+
+let metaQuestionCount = 0; // Counts the number of meta questions
+
+
+function showMetaQuestion() {
+  // Pause the game so nothing runs while the meta question is active.
+  pauseGame();
+  const metaContainer = document.getElementById('metaQuestionContainer');
+  metaContainer.style.display = 'block';
+
+  // Clear any previous meta question event listeners.
+  clearMetaQuestionListeners();
+
+  const yesBtn = document.getElementById('continueYes');
+  const noBtn  = document.getElementById('continueNo');
+
+  // Set a timeout for the meta question (e.g., 7 seconds)
+  const metaTimeout = setTimeout(() => {
+    // Show "Zu langsam!" for 2 seconds.
+    showSpeechBubble("Zu langsam!", 2000);
+    metaContainer.style.display = 'none';
+    console.log("Meta question timed out. Skipping trial.");
+    // Wait until the speech bubble has been shown before starting tosses.
+    setTimeout(() => {
+      startTossBetweenOthers(2, () => {
+        // After tosses are done, re–ask the meta question for a new trial.
+        showMetaQuestion();
+        incrementMetaQuestionCount();
+      });
+    }, 2000);
+  }, 10000);
+
+  yesBtn.addEventListener('click', () => {
+  clearTimeout(metaTimeout);
+  metaContainer.style.display = 'none';
+  console.log("Meta question answered: Yes");
+  // Increment the meta question count for this trial
+  incrementMetaQuestionCount();
+  // Then proceed with the desired action, e.g. promptPlayerChoice()
+  promptPlayerChoice();
+}, { once: true });
+
+noBtn.addEventListener('click', () => {
+  clearTimeout(metaTimeout);
+  metaContainer.style.display = 'none';
+  console.log("Meta question answered: No");
+  // Increment the meta question count for this trial
+  incrementMetaQuestionCount();
+  // Then proceed (e.g. start tosses between others)
+  startTossBetweenOthers(4, () => {
+    showMetaQuestion();
+  });
+}, { once: true });
+}
+
+function incrementMetaQuestionCount() { 
+  metaQuestionCount++;
+  console.log("Meta Question Count:", metaQuestionCount, "Threshold:", roundsUntilMoodCheck);
+
+  if (metaQuestionCount >= roundsUntilMoodCheck) {
+    console.log("Triggering mood check...");
+    metaQuestionCount = 0; // Reset counter
+    promptMoodCheck(() => {
+  console.log("Mood check completed. Preparing meta question...");
+  // Ensure any previous meta question prompt is hidden:
+  document.getElementById('metaQuestionContainer').style.display = 'none';
+  roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+  showMetaQuestion();
+  
+});
+  }
+}
+
+
+// Returns a random integer between 3 and 6.
+function getRandomRoundsForMoodCheck() {
+    const randomRounds = Math.floor(Math.random() * (6 - 3 + 1)) + 3;
+    console.log(`New mood check interval set: ${randomRounds} meta questions`);
+    return randomRounds;
+}
+
+function promptMoodCheck(callback) { 
+  const moodContainer = document.getElementById('moodContainer');
+  moodContainer.style.display = 'block';
+  const submitBtn = document.getElementById('submitRatings');
+  
+  // Pause the game and clear the toss interval.
+  gamePaused = true;
+  if (ballTossInterval) {
+    clearInterval(ballTossInterval);
+    ballTossInterval = null;
+  }
+  
+  // Set a timeout for mood check (10 seconds).
+  const moodCheckTimeout = setTimeout(() => {
+    showSpeechBubble("Zu langsam", 1000);
+    moodContainer.style.display = 'none';
+    // Do NOT set gamePaused = false here.
+    if (callback) {
+      callback();  // Callback should show the meta question.
+    } else {
+      showMetaQuestion();
+    }
+  }, 10000);
+  
+  // When the user submits their ratings, clear the timeout and then invoke the callback.
+  submitBtn.addEventListener('click', () => {
+    clearTimeout(moodCheckTimeout);
+    const mood = document.getElementById('mood').value;
+    const excitement = document.getElementById('excitement').value;
+    console.log("Mood Submitted:", { mood, excitement });
+    moodContainer.style.display = 'none';
+    // Again, do NOT resume the game here.
+    if (callback) {
+      callback();
+    } else {
+      showMetaQuestion();
+    }
+  }, { once: true });
+}
+
+
+function tossBallToCenter(callback) {
+    const gameContainer = document.getElementById('gameContainer');
+    const ball = document.getElementById('ball');
+    const centerX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
+    const centerY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
+
+    console.log(`Tossing ball to center at (${centerX}, ${centerY})`);
+    const fromPlayer = selectedOthers[0];
+    const fromPosition = playerPositions[fromPlayer];
+
+    tossBallToPosition(fromPosition, { x: centerX, y: centerY }, () => {
+        if (callback) callback();
+    });
+}
+
+let choicePromptActive = false;
+let choiceMade = false;
+let playerChoiceTimeout;
+
+function promptPlayerChoice() {
+  // Reset flags and pause the game so that no ball toss occurs during choice prompt.
+  choiceMade = false;
+  choicePromptActive = true;
+  pauseGame();
+  console.log("Prompting player choice. Game paused:", gamePaused, "Choice prompt active:", choicePromptActive);
+
+  const speechBubble = document.getElementById('speechBubble');
+  const selfPos = playerPositions[selectedSelf];
+  if (!selfPos) {
+    console.error("Self player position not found.");
+    return;
+  }
+
+  // Position and display the speech bubble.
+  speechBubble.style.left = `${selfPos.x + 50}px`;
+  speechBubble.style.top = `${selfPos.y - 80}px`;
+  speechBubble.textContent = "Wen will ich ansprechen?";
+  speechBubble.style.display = 'block';
+  speechBubble.style.opacity = '1';
+
+  // Set a timeout (e.g., 3 seconds) so that if no answer is made, show "Zu langsam!" for 1 second
+  playerChoiceTimeout = setTimeout(() => {
+    if (!choiceMade) {
+      showSpeechBubble("Zu langsam!", 1000);
+      // After showing the bubble, wait a short time then re–ask the meta question (i.e. new trial)
+      setTimeout(() => {
+        hidePromptAndContinue();
+      }, 1100);
+    }
+  }, 3000);
+
+  // Attach click event listeners to each selectable player.
+  selectedOthers.forEach(pid => {
+    const elem = document.getElementById(pid);
+    if (!elem) return;
+    elem.style.pointerEvents = 'auto';
+    elem.style.cursor = 'pointer';
+    elem.addEventListener('click', function onPlayerClick() {
+      console.log(`Player ${pid} clicked.`);
+      choiceMade = true;
+      clearTimeout(playerChoiceTimeout);
+      // Disable further interactions on selectable players.
+      selectedOthers.forEach(otherId => {
+        const otherElem = document.getElementById(otherId);
+        if (otherElem) {
+          otherElem.style.pointerEvents = 'none';
+        }
+      });
+      // Hide the speech bubble.
+      speechBubble.style.opacity = '0';
+      setTimeout(() => {
+        speechBubble.style.display = 'none';
+      }, 500);
+      // Mark prompt as finished and resume the game.
+      choicePromptActive = false;
+      resumeGame();
+      // Process the chosen player.
+      handlePlayerChoice(pid);
+    }, { once: true });
+  });
+}
+
+
+// When the player choice times out, hide the prompt and re–ask the meta question.
+function hidePromptAndContinue() {
+  const speechBubble = document.getElementById('speechBubble');
+  if (speechBubble) speechBubble.style.display = 'none';
+  choicePromptActive = false;
+  // Instead of resuming ball toss immediately, re–ask the meta question to start a new trial.
+  showMetaQuestion();
+}
+
+let choices= [];
+
+function showPlayerChoicePrompt() {
+    // Pause the game while the player is choosing
+    pauseGame();
+    // Set a flag to indicate the prompt is active
+    choicePromptActive = true;
+    // Reset choiceMade flag for this prompt
+    choiceMade = false;
+
+    const speechBubble = document.getElementById('speechBubble');
+    const selfPlayerPosition = playerPositions[selectedSelf];
+
+    if (!selfPlayerPosition) {
+        console.error("Self player position not found.");
+        return;
+    }
+    
+    // Hide the player options container
+    document.getElementById('playerOptionsContainer').style.display = 'none';
+
+    // Position the speech bubble next to the self-player
+    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`; // Adjust horizontal position
+    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`;  // Adjust vertical position
+    speechBubble.textContent = "Wen will ich ansprechen?";      // Text inside the speech bubble
+    speechBubble.style.display = 'block';
+
+    // Set a timeout to resume if no choice is made after, say, 5 seconds
+    playerChoiceTimeout = setTimeout(() => {
+        if (!choiceMade) {
+            showSpeechBubble("Zu langsam!", 2000);
+            hidePromptAndContinue(); // This should unpause the game and reset the flag.
+        }
+    }, 7000);
+
+    // Add click event listeners to the other players
+    selectedOthers.forEach(playerId => {
+        const playerElement = document.getElementById(playerId);
+        if (!playerElement) return;
+
+        playerElement.style.cursor = 'pointer';
+        playerElement.addEventListener('click', () => {
+            console.log(`Player ${playerId} clicked.`);
+            choiceMade = true;
+            clearTimeout(playerChoiceTimeout);
+
+            // Disable further interactions for all players
+            selectedOthers.forEach(otherPlayerId => {
+                const otherElement = document.getElementById(otherPlayerId);
+                if (otherElement) {
+                    otherElement.style.pointerEvents = 'none';
+                }
+            });
+
+            // Hide the speech bubble
+            speechBubble.style.display = 'none';
+            // Unpause the game
+            choicePromptActive = false;
+            gamePaused = false;
+            // Process the choice
+            handlePlayerChoice(playerId);
+        }, { once: true });
+    });
+}
+
+
+
+function pauseGame() {
+  gamePaused = true;
+  if (ballTossInterval) {
+    clearInterval(ballTossInterval);
+    ballTossInterval = null;
+  }
+  isAnimationPlaying = false;
+  console.log("Game paused.");
+}
+
+function resumeGame() {
+  gamePaused = false;
+  startBallToss();
+  console.log("Game resumed.");
+}
+
+
+
+
+// Function to hide the player choice prompt and continue the game
+function hidePlayerChoicePrompt() {
+    const choicePrompt = document.querySelector('.choose-player');
+    if (choicePrompt) choicePrompt.style.display = 'none';
+}
+
+
+
+function endGame() {
+    console.log("Game Over! All 144 trials completed.");
+    gameContainer.style.display = 'none';
+    alert("Game Over! Danke fürs Mitspielen!.");
+}
+
+
+function updateSelfPlayerImage(direction) {
+    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+
+    if (!selfPlayerContainer) {
+        console.error("Self player container not found.");
+        return;
+    }
+
+    // Determine the correct image for the direction
+    const selfImage = direction === 'left'
+        ? `${selectedSelf}_self_left.png`
+        : `${selectedSelf}_self_right.png`;
+
+    // Update the self-player container's background image
+    selfPlayerContainer.style.backgroundImage = `url('${selfImage}')`;
+    selfPlayerContainer.style.backgroundSize = 'contain';
+    selfPlayerContainer.style.backgroundRepeat = 'no-repeat';
+    selfPlayerContainer.style.display = 'block'; // Ensure the container is visible
+
+    console.log(`Updated self-player container image to ${selfImage}`);
+}
+// --- HANDLING A PLAYER CHOICE ---
+function handlePlayerChoice(playerId) {
+  const chosenPlayerElement = document.getElementById(playerId);
+  const selfPlayerContainer = document.getElementById('selfPlayerContainer');
+  const selfPlayerOriginal = document.getElementById(selectedSelf); // original image
+  const isRewarding = roles.rewardingPlayers.includes(playerId);
+
+  if (!chosenPlayerElement || !selfPlayerContainer || !selfPlayerOriginal) {
+    console.error(`Error in handlePlayerChoice: Required elements not found.`);
+    return;
+  }
+
+  pauseGame(); // Pause the game while processing the choice.
+
+  const selfPos = playerPositions[selectedSelf];
+  const chosenPos = playerPositions[playerId];
+  const direction = getDirection(selfPos.x, chosenPos.x);
+
+  // Turn the self–player to face the chosen player.
+  updateSelfPlayerDirection(direction);
+
+  // Show feedback (animations, audio, speech bubble) before proceeding.
+  showFeedback(playerId, isRewarding, () => {
+    // Once feedback is finished, restore the original self–player image.
+    restoreOriginalSelfPlayerImage();
+
+    if (isRewarding) {
+      console.log("Rewarding choice. Simulating toss in a triangle...");
+      // Simulate toss: from chosen player → self → other player.
+      const fromPos = playerPositions[playerId];
+      const selfCenter = {
+        x: selfPlayerContainer.offsetLeft + selfPlayerContainer.offsetWidth / 2,
+        y: selfPlayerContainer.offsetTop + selfPlayerContainer.offsetHeight / 2
+      };
+    checkSelectedOthers();
+      // Toss ball from chosen player to self.
+      playThrowAnimation(playerId, getDirection(fromPos.x, selfCenter.x), () => {
+        animateBall(fromPos.x, fromPos.y, selfCenter.x, selfCenter.y, () => {
+          playCatchAnimation(selectedSelf, getDirection(selfCenter.x, fromPos.x), () => {
+            // Toss ball from self to the other player.
+            const otherPlayer = selectedOthers.find(p => p !== playerId);
+            const otherPos = playerPositions[otherPlayer];
+            playThrowAnimation(selectedSelf, getDirection(selfCenter.x, otherPos.x), () => {
+              animateBall(selfCenter.x, selfCenter.y, otherPos.x, otherPos.y, () => {
+                playCatchAnimation(otherPlayer, getDirection(otherPos.x, selfCenter.x), () => {
+                  // Once toss sequence is done, show meta question.
+                  showMetaQuestion();
+                });
+              });
+            });
+          });
+        });
+      });
+    } else {
+      console.log("Punishing choice. Starting 3 tosses between other players...");
+      startOtherPlayersTossSequence(2, () => {
+        // After punishment tosses complete, show meta question.
+        showMetaQuestion();
+      });
+    }
+  });
+}
+
+
+
+
+
+
+function tossBallToPosition(fromPosition, toPosition, callback) {
+    console.log(`Tossing and animating ball from (${fromPosition.x}, ${fromPosition.y}) to (${toPosition.x}, ${toPosition.y})`);
+    animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
+        console.log("Ball reached destination.");
+        if (callback) callback();
+    });
+}
 
 
 // Function to start tossing sequence after a "No" response
@@ -1552,502 +1919,6 @@ function startOtherPlayersTossSequence(totalTosses) {
     }
 
     tossBetweenPlayers(playerA, playerB);
-}
-
-
-let metaQuestionCount = 0; // Counts the number of meta questions
-const moodCheckThreshold = 12; // Mood check happens after every 12 meta questions
-
-function showMetaQuestion() {
-  pauseGame();
-  const metaQuestionContainer = document.getElementById('metaQuestionContainer');
-  metaQuestionContainer.style.display = 'block';
-
-  // Clear any previous listeners
-  clearMetaQuestionListeners();
-
-  const yesButton = document.getElementById('continueYes');
-  const noButton  = document.getElementById('continueNo');
-
-  // Set a timeout for the meta question (30 seconds)
-  const metaQuestionTimeout = setTimeout(() => {
-    showSpeechBubble("Zu langsam", 1000);
-    metaQuestionContainer.style.display = 'none';
-    // Default action: here, you might choose to resume the game or treat it as a "Yes"
-    resumeGame();
-  }, 5000);
-
-  yesButton.addEventListener('click', () => {
-    clearTimeout(metaQuestionTimeout);
-    metaQuestionContainer.style.display = 'none';
-    incrementMetaQuestionCount(true);
-  });
-
-  noButton.addEventListener('click', () => {
-    clearTimeout(metaQuestionTimeout);
-    metaQuestionContainer.style.display = 'none';
-    incrementMetaQuestionCount(false);
-    // Example: toss 4 times among other players then re-ask
-    startTossBetweenOthers(4, () => {
-      showMetaQuestion();
-    });
-  });
-}
-
-
-// Make sure we accept the parameter chosenYes here
-function incrementMetaQuestionCount(chosenYes) {
-    metaQuestionCount++;
-    console.log("Incrementing metaQuestionCount to", metaQuestionCount);
-
-    if (metaQuestionCount === moodCheckThreshold) {
-        console.log("Triggering mood check...");
-        metaQuestionCount = 0; // Reset after mood check
-
-        // Do mood check
-        promptMoodCheck(() => {
-            console.log("Mood check completed.");
-            // Only prompt player choice if chosenYes was true
-            if (chosenYes) {
-                promptPlayerChoice();
-            }
-        });
-    } 
-    else {
-        // If we haven't hit the threshold, do we prompt the choice?
-        if (chosenYes) {
-            console.log(`Proceeding without mood check. Current count: ${metaQuestionCount}`);
-            promptPlayerChoice();
-        }
-    }
-}
-
-
-function promptMoodCheck(callback) {
-    console.log("Prompting mood check...");
-    const moodContainer = document.getElementById('moodContainer');
-    moodContainer.style.display = 'block';
-    gamePaused = true; // Pause the game during the mood check
-
-    // Wait for the user to submit their mood ratings
-    document.getElementById('submitRatings').addEventListener(
-        'click',
-        () => {
-            const mood = document.getElementById('mood').value;
-            const excitement = document.getElementById('excitement').value;
-
-            console.log("Mood Submitted:", { mood, excitement });
-
-            // Hide the mood container and resume the game
-            moodContainer.style.display = 'none';
-            gamePaused = false;
-            if (callback) callback(); // Proceed with the next action after mood check
-        },
-        { once: true } // Ensure this listener only runs once
-    );
-}
-
-
-
-
-function clearMetaQuestionListeners() {
-    const yesButton = document.getElementById('continueYes');
-    const noButton = document.getElementById('continueNo');
-
-    // Replace buttons to remove old listeners
-    const newYesButton = yesButton.cloneNode(true);
-    const newNoButton = noButton.cloneNode(true);
-
-    yesButton.parentNode.replaceChild(newYesButton, yesButton);
-    noButton.parentNode.replaceChild(newNoButton, noButton);
-}
-
-
-
-
-function tossBallToCenter(callback) {
-    const gameContainer = document.getElementById('gameContainer');
-    const ball = document.getElementById('ball');
-    const centerX = gameContainer.clientWidth / 2 - ball.offsetWidth / 2;
-    const centerY = gameContainer.clientHeight / 2 - ball.offsetHeight / 2;
-
-    console.log(`Tossing ball to center at (${centerX}, ${centerY})`);
-    const fromPlayer = selectedOthers[0];
-    const fromPosition = playerPositions[fromPlayer];
-
-    tossBallToPosition(fromPosition, { x: centerX, y: centerY }, () => {
-        if (callback) callback();
-    });
-}
-
-let playerChoiceTimeout;
-let choiceMade = false;
-
-function promptPlayerChoice() {
-  console.log("Prompting player to choose between the two other players.");
-  const speechBubble = document.getElementById('speechBubble');
-  const selfPlayerPosition = playerPositions[selectedSelf];
-
-  if (!selfPlayerPosition) {
-    console.error("Self player position not found.");
-    return;
-  }
-
-  // Position and display the speech bubble
-  speechBubble.style.left = `${selfPlayerPosition.x + 50}px`;
-  speechBubble.style.top = `${selfPlayerPosition.y - 80}px`;
-  speechBubble.textContent = "Wen will ich ansprechen?";
-  speechBubble.style.display = 'block';
-  speechBubble.style.opacity = '1';
-
-  // Set timeout: if no choice is made in 30 seconds, show "Zu langsam"
-  playerChoiceTimeout = setTimeout(() => {
-    if (!choiceMade) {
-      showSpeechBubble("Zu langsam!", 1000);
-      hidePromptAndContinue(); // Automatically continue
-    }
-  }, 5000);
-
-  // Loop through each of the selected other players
-  selectedOthers.forEach(playerId => {
-    const playerElement = document.getElementById(playerId);
-    if (!playerElement) return;
-
-    // Ensure the player element is visible and interactive
-    playerElement.style.display = 'block';
-    playerElement.style.visibility = 'visible';
-    playerElement.style.pointerEvents = 'auto';
-    playerElement.style.cursor = 'pointer';
-
-    // Add click event for the player
-    playerElement.addEventListener('click', () => {
-      console.log(`Player ${playerId} clicked.`);
-      choiceMade = true; // Mark that a choice was made
-      clearTimeout(playerChoiceTimeout); // Clear the timeout
-
-      // Disable further interactions for all players
-      selectedOthers.forEach(otherPlayerId => {
-        const otherElement = document.getElementById(otherPlayerId);
-        if (otherElement) {
-          otherElement.style.cursor = 'default';
-          otherElement.style.border = '2px solid transparent'; // Reset border if used
-          otherElement.style.pointerEvents = 'none'; // Disable further clicks
-        }
-      });
-
-      // Hide the speech bubble after selection
-      speechBubble.style.opacity = '0';
-      setTimeout(() => {
-        speechBubble.style.display = 'none';
-      }, 2000);
-
-      // Handle the player's choice
-      handlePlayerChoice(playerId);
-    }, { once: true }); // Ensure only one click is registered
-  });
-}
-
-
-function hidePromptAndContinue() {
-    const speechBubble = document.getElementById('speechBubble');
-    if (speechBubble) speechBubble.style.display = 'none';
-    resumeGame(); // Resume the game after the choice
-}
-
-
-let choices= [];
-
-
-function showPlayerChoicePrompt() {
-    const speechBubble = document.getElementById('speechBubble');
-    const selfPlayerPosition = playerPositions[selectedSelf];
-
-    if (!selfPlayerPosition) {
-        console.error("Self player position not found.");
-        return;
-    }
-    
-    // Hide the player options container
-    document.getElementById('playerOptionsContainer').style.display = 'none';
-
-    // Position the speech bubble next to the self-player
-    speechBubble.style.left = `${selfPlayerPosition.x + 50}px`; // Adjust horizontal position
-    speechBubble.style.top = `${selfPlayerPosition.y - 80}px`;  // Adjust vertical position
-    speechBubble.textContent = "Wen will ich ansprechen?";      // Text inside the speech bubble
-    speechBubble.style.display = 'block';
-
-    // Add click event listeners to the other players
-    selectedOthers.forEach(playerId => {
-        const playerElement = document.getElementById(playerId);
-        if (!playerElement) return;
-
-        playerElement.style.cursor = 'pointer';
-        playerElement.addEventListener('click', () => {
-            handlePlayerChoice(playerId);
-        }, { once: true });
-    });
-}
-
-
-
-function pauseGame() {
-    gamePaused = true;
-
-    // Stop any ongoing ball toss interval
-    if (ballTossInterval) {
-        clearInterval(ballTossInterval);
-        ballTossInterval = null; // Clear the reference
-    }
-
-    // Disable any animations
-    isAnimationPlaying = false;
-
-    console.log("Game paused.");
-}
-
-function resumeGame() {
-    if (!gamePaused) return; // If the game is not paused, do nothing
-
-    gamePaused = false;
-
-    // Restart the ball toss sequence or other gameplay activities
-    startBallToss();
-
-    console.log("Game resumed.");
-}
-
-
-function resetGame() {
-    clearInterval(ballTossInterval); // Clear any running interval
-    gamePaused = true; // Pause game
-    tossCount = 0; // Reset toss count
-    startGame(); // Restart the game
-}
-
-// Function to hide the player choice prompt and continue the game
-function hidePlayerChoicePrompt() {
-    const choicePrompt = document.querySelector('.choose-player');
-    if (choicePrompt) choicePrompt.style.display = 'none';
-}
-
-// Example implementation of showSpeechBubble
-function showSpeechBubble(message, duration = 3000) {
-    const speechBubble = document.getElementById('speechBubble');
-    speechBubble.textContent = message;
-    speechBubble.style.display = 'block';
-
-    setTimeout(() => {
-        speechBubble.style.display = 'none';
-    }, duration);
-}
-
-
-function endGame() {
-    console.log("Game Over! All 144 trials completed.");
-    gameContainer.style.display = 'none';
-    alert("Game Over! Danke fürs Mitspielen!.");
-}
-
-
-function tossInTriangleWithSelf(callback) {
-    const tossSequence = [
-        { from: selectedOthers[0], to: selectedSelf },
-        { from: selectedSelf, to: selectedOthers[1] },
-        { from: selectedOthers[1], to: selectedSelf },
-        { from: selectedSelf, to: selectedOthers[0] }
-    ];
-    let tossIndex = 0;
-
-    function getAnimationDirection(fromPlayer, toPlayer) {
-        if (toPlayer === selectedSelf) return 'center';
-        if (fromPlayer === selectedSelf) {
-            return toPlayer === selectedOthers[0] ? 'left' : 'right';
-        }
-        return toPlayer === selectedOthers[0] ? 'left' : 'right';
-    }
-
-    function tossToNext() {
-    if (tossIndex >= tossSequence.length) {
-        console.log('Toss sequence complete.');
-        if (callback) callback(); // Call the callback after sequence completes
-        return;
-    }
-
-    const { from, to } = tossSequence[tossIndex];
-    const fromPosition = playerPositions[from];
-    const toPosition = playerPositions[to];
-
-    if (!fromPosition || !toPosition) {
-        console.error(`Invalid positions for ${from} or ${to}`);
-        tossIndex++;
-        tossToNext(); // Skip this toss and move to the next
-        return;
-    }
-
-    console.log(`Tossing ball from ${from} to ${to}`);
-    console.log(`From Position: x=${fromPosition.x}, y=${fromPosition.y}`);
-    console.log(`To Position: x=${toPosition.x}, y=${toPosition.y}`);
-
-    const direction = getAnimationDirection(from, to);
-
-    // Play throw animation for the current player
-    playAnimation(from, 'throw', direction, () => {
-        // Move the ball to the next player
-        animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
-            console.log(`Ball reached ${to}`);
-
-            // Play catch animation for the target player
-            playAnimation(to, 'catch', direction, () => {
-                console.log(`Catch animation completed for ${to}`);
-                tossIndex++; // Move to the next toss in sequence
-                setTimeout(tossToNext, 500); // Short delay before the next toss
-            });
-        });
-    });
-}
-}
-
-function updateSelfPlayerImage(direction) {
-    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
-
-    if (!selfPlayerContainer) {
-        console.error("Self player container not found.");
-        return;
-    }
-
-    // Determine the correct image for the direction
-    const selfImage = direction === 'left'
-        ? `${selectedSelf}_self_left.png`
-        : `${selectedSelf}_self_right.png`;
-
-    // Update the self-player container's background image
-    selfPlayerContainer.style.backgroundImage = `url('${selfImage}')`;
-    selfPlayerContainer.style.backgroundSize = 'contain';
-    selfPlayerContainer.style.backgroundRepeat = 'no-repeat';
-    selfPlayerContainer.style.display = 'block'; // Ensure the container is visible
-
-    console.log(`Updated self-player container image to ${selfImage}`);
-}
-function handlePlayerChoice(playerId) { 
-    const chosenPlayerElement = document.getElementById(playerId);
-    const selfPlayerContainer = document.getElementById('selfPlayerContainer');
-    const selfPlayerOriginal = document.getElementById(selectedSelf); // Original self-player image
-    const speechBubble = document.getElementById('speechBubble');
-    const isRewarding = roles.rewardingPlayers.includes(playerId);
-
-    if (!chosenPlayerElement || !selfPlayerContainer || !selfPlayerOriginal) {
-        console.error(`Error in handlePlayerChoice: Required elements not found.`);
-        return;
-    }
-
-    pauseGame(); // Pause the game while processing the choice
-
-    const selfPosition = playerPositions[selectedSelf];
-    const chosenPlayerPosition = playerPositions[playerId];
-    const direction = getDirection(selfPosition.x, chosenPlayerPosition.x);
-
-    // Turn the self-player to face the chosen player
-    updateSelfPlayerDirection(direction);
-
-    // Show feedback (image, audio, and speech bubble) before proceeding
-    showFeedback(playerId, isRewarding, () => {
-        // Blend back to the original self-player image after feedback
-        restoreOriginalSelfPlayerImage();
-
-        if (isRewarding) {
-            console.log("Rewarding choice. Simulating toss to self and back...");
-
-            // Toss to self and then back to other player
-            const fromPlayerPosition = playerPositions[playerId];
-            const selfPosition = {
-                x: selfPlayerContainer.offsetLeft + selfPlayerContainer.offsetWidth / 2,
-                y: selfPlayerContainer.offsetTop + selfPlayerContainer.offsetHeight / 2,
-            };
-
-            // Step 1: Play throw animation for the chosen player
-            const directionToSelf = getDirection(fromPlayerPosition.x, selfPosition.x);
-            playThrowAnimation(playerId, directionToSelf, () => {
-                // Step 2: Toss ball to self
-                animateBall(fromPlayerPosition.x, fromPlayerPosition.y, selfPosition.x, selfPosition.y, () => {
-                    console.log("Ball reached self-player.");
-
-                    // Step 3: Play catch animation for self-player
-                    const directionFromChosen = getDirection(selfPosition.x, fromPlayerPosition.x);
-                    playCatchAnimation(selectedSelf, directionFromChosen, () => {
-                        console.log("Self-player caught the ball.");
-
-                        // Step 4: Prepare to throw to the other player
-                        const otherPlayer = selectedOthers.find(p => p !== playerId);
-                        const otherPlayerPosition = playerPositions[otherPlayer];
-                        const directionToOther = getDirection(selfPosition.x, otherPlayerPosition.x);
-
-                        // Step 5: Play throw animation for self-player
-                        playThrowAnimation(selectedSelf, directionToOther, () => {
-                            // Step 6: Toss ball to the other player
-                            animateBall(selfPosition.x, selfPosition.y, otherPlayerPosition.x, otherPlayerPosition.y, () => {
-                                console.log("Ball reached the other player.");
-
-                                // Step 7: Play catch animation for the other player
-                                const directionFromSelf = getDirection(otherPlayerPosition.x, selfPosition.x);
-                                playCatchAnimation(otherPlayer, directionFromSelf, () => {
-                                    console.log("Other player caught the ball.");
-
-                                    // Step 8: Toss ball to the center and show meta-question
-                                    tossBallToCenter(() => {
-                                        showMetaQuestion();
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        } else {
-            console.log("Punishing choice. Starting 3 tosses between other players...");
-            startTossBetweenOthers(3, () => {
-                showMetaQuestion(); 
-            });
-        }
-    });
-}
-
-
-
-
-
-function executeTossSequence(sequence, callback) {
-    let index = 0;
-
-    function tossNext() {
-        if (index >= sequence.length) {
-            if (callback) callback();
-            return;
-        }
-
-        const { from, to, centerPosition } = sequence[index];
-        if (to === 'center') {
-            tossBallToCenter(() => {
-                index++;
-                tossNext();
-            });
-        } else {
-            tossBallToPlayer(from, to, () => {
-                index++;
-                tossNext();
-            });
-        }
-    }
-
-    tossNext(); // Start the sequence
-}
-
-
-function tossBallToPosition(fromPosition, toPosition, callback) {
-    console.log(`Tossing and animating ball from (${fromPosition.x}, ${fromPosition.y}) to (${toPosition.x}, ${toPosition.y})`);
-    animateBall(fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, () => {
-        console.log("Ball reached destination.");
-        if (callback) callback();
-    });
 }
 
 
@@ -2088,111 +1959,74 @@ function startTossBetweenOthers(tossCount, callback) {
 }
 
 
-function tossToOtherPlayerUntilMeta(callback) {
-    let tossCount = 0;
-    const maxTosses = 4; // Number of tosses before meta-question
-    const playerA = selectedOthers[0];
-    const playerB = selectedOthers[1];
 
-    function tossBetweenTwo() {
-        if (tossCount >= maxTosses) {
-            if (callback) callback(); // Call callback after sequence completes
-            return;
-        }
+function showFeedback(playerId, isRewarding, callback) {
+    const feedbackImgId = `${playerId}_${isRewarding ? 'reward' : 'punish'}`;
+    const feedbackImg = document.getElementById(feedbackImgId);
+    const playerEl   = document.getElementById(playerId);
 
-        const fromPlayer = tossCount % 2 === 0 ? playerA : playerB;
-        const toPlayer = tossCount % 2 === 0 ? playerB : playerA;
-
-        tossBallToPlayer(fromPlayer, toPlayer, () => {
-            tossCount++;
-            tossBetweenTwo();
-        });
+    if (!feedbackImg || !playerEl) {
+        if (callback) callback();
+        return;
     }
+    // Determine audio based on gender & rewarding
+    const gender = getGenderFromPlayerId(playerId);
+    const audioPath = getAudioPath(isRewarding, gender);
+    const feedbackAudio = new Audio(audioPath);
 
-    tossBetweenTwo(); // Start the toss sequence
-}
+    // Text in the bubble
+    const feedbackMessage = isRewarding
+        ? "Ja gerne, komm spiel mit uns!"
+        : "Nein, Du darfst nicht mitspielen!";
 
- /* --- Show feedback image + play appropriate audio + speech bubble --- */
- function showFeedback(playerId, isRewarding, callback) {
-            const feedbackImgId = `${playerId}_${isRewarding ? 'reward' : 'punish'}`;
-            const feedbackImg = document.getElementById(feedbackImgId);
-            const playerEl   = document.getElementById(playerId);
+    // Position the feedback image over the player
+    const rect = playerEl.getBoundingClientRect();
+    const playerPosition = {
+        x: rect.left + window.scrollX,
+        y: rect.top  + window.scrollY,
+        width: rect.width,
+        height: rect.height
+    };
 
-            if (!feedbackImg || !playerEl) {
-                if (callback) callback();
-                return;
-            }
-            // Determine audio based on gender & rewarding
-            const gender = getGenderFromPlayerId(playerId);
-            const audioPath = getAudioPath(isRewarding, gender);
-            const feedbackAudio = new Audio(audioPath);
+    playerEl.style.opacity = '0';
+    feedbackImg.style.position = 'absolute';
+    feedbackImg.style.left = `${playerPosition.x}px`;
+    feedbackImg.style.top  = `${playerPosition.y}px`;
+    feedbackImg.style.width  = `${playerPosition.width}px`;
+    feedbackImg.style.height = `${playerPosition.height}px`;
+    feedbackImg.style.display = 'block';
+    feedbackImg.style.opacity = '1';
 
-            // Text in the bubble
-            const feedbackMessage = isRewarding
-                ? "Ja gerne, komm spiel mit uns!"
-                : "Nein, Du darfst nicht mitspielen!";
+    // Position and show the speech bubble above the player
+    speechBubble.style.left = `${playerPosition.x + (playerPosition.width / 2) - 100}px`;
+    speechBubble.style.top  = `${playerPosition.y - 60}px`;
+    speechBubble.textContent = feedbackMessage;
+    speechBubble.style.display = 'block';
+    speechBubble.style.opacity = '1';
 
-            // Position the feedback image over the player
-            const rect = playerEl.getBoundingClientRect();
-            const playerPosition = {
-                x: rect.left + window.scrollX,
-                y: rect.top  + window.scrollY,
-                width: rect.width,
-                height: rect.height
-            };
+    // Play audio
+    feedbackAudio.play().catch(err => console.log("Audio play blocked:", err));
 
-            playerEl.style.opacity = '0';
-            feedbackImg.style.position = 'absolute';
-            feedbackImg.style.left = `${playerPosition.x}px`;
-            feedbackImg.style.top  = `${playerPosition.y}px`;
-            feedbackImg.style.width  = `${playerPosition.width}px`;
-            feedbackImg.style.height = `${playerPosition.height}px`;
-            feedbackImg.style.display = 'block';
-            feedbackImg.style.opacity = '1';
+    // Fade out the image after 4 seconds
+    setTimeout(() => {
+        feedbackImg.style.opacity = '0';
+        setTimeout(() => {
+            feedbackImg.style.display = 'none';
+        }, 500);
+    }, 2000);
 
-            // Speech bubble above the player
-            speechBubble.style.left = `${playerPosition.x + (playerPosition.width / 2) - 100}px`;
-            speechBubble.style.top  = `${playerPosition.y - 60}px`;
-            speechBubble.textContent = feedbackMessage;
-            speechBubble.style.display = 'block';
-            speechBubble.style.opacity = '1';
-
-            // Play audio
-            feedbackAudio.play().catch(err => console.log("Audio play blocked:", err));
-
-            setTimeout(() => {
-                feedbackImg.style.opacity = '0';
-                speechBubble.style.opacity = '0';
-                setTimeout(() => {
-                    feedbackImg.style.display = 'none';
-                    speechBubble.style.display = 'none';
-                    playerEl.style.opacity = '1';
-                    if (callback) callback();
-                }, 500);
-            }, 4000); // Show for ~4s
-        }
-
-// Function to select the next player in `selectedOthers`, avoiding self-player
-function selectNextOtherPlayer(currentPlayerId) {
-    const nextPlayerId = selectedOthers.find(player => player !== currentPlayerId);
-    if (nextPlayerId) return nextPlayerId;
-
-    console.error("No valid next player found in selectedOthers.");
-    return selectedOthers[0]; // Fallback if no alternative is found
+    // Fade out the speech bubble after 6 seconds
+    setTimeout(() => {
+        speechBubble.style.opacity = '0';
+        setTimeout(() => {
+            speechBubble.style.display = 'none';
+            playerEl.style.opacity = '1';
+            if (callback) callback();
+        }, 500);
+    }, 2000);
 }
 
 
-
-// Hide prompt and continue game after choice is made
-function hidePromptAndContinue() {
-    const choicePrompt = document.querySelector('.choose-player');
-    if (choicePrompt) {
-        choicePrompt.style.display = 'none'; // Ensure prompt is hidden
-    }
-    clearTimeout(choiceTimeout); // Clear any auto-dismiss timeout
-    resetTossCounter();
-    resumeGame();
-}
 
 let leftRewardProbability = 0.8;
 let rightRewardProbability = 0.2;
@@ -2269,22 +2103,6 @@ function playPunishingAudio() {
     punishAudio.play();  // Assuming punishAudio is the punishing sound element
 }
 
-function showSpeechBubble(message, duration = 1000) {
-    const speechBubble = document.getElementById('speechBubble');
-    if (!speechBubble) {
-        console.error("Speech bubble element not found!");
-        return;
-    }
-    speechBubble.textContent = message;
-    // Temporarily center the speech bubble for debugging:
-    speechBubble.style.left = '50%';
-    speechBubble.style.top = '50%';
-    speechBubble.style.transform = 'translate(-50%, -50%)';
-    speechBubble.style.display = 'block';
-    setTimeout(() => {
-        speechBubble.style.display = 'none';
-    }, duration);
-}
 
 
 
@@ -2301,19 +2119,10 @@ function adjustDriftingProbabilities(isRewarding) {
 }
 
 
+
 const totalMoodTrials = 6;
 let currentMoodTrial = 0;
-  // Listener for mood check submission
-  document.getElementById('submitRatings').addEventListener('click', () => {
-        const mood = document.getElementById('mood').value;
-        const excitement = document.getElementById('excitement').value;
-        moodContainer.style.display = 'none';
-        console.log(`Mood: ${mood}, Excitement: ${excitement}`);
 
-        // Reset for the next mood check
-        roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
-        startBallToss();
-    });
 
 // Function to check if it's time for a mood check
 function checkMoodPrompt() {
@@ -2323,22 +2132,6 @@ function checkMoodPrompt() {
         maxTrialsBeforeMoodCheck = getRandomInt(3, 6); // Set the next mood check interval
     }
 }
-
-
-
-
-
-// Function to check if it's time for a mood check
-function checkMoodPrompt() {
-    if (roundsUntilMoodCheck <= 0) {
-        promptMoodCheck();
-    } else {
-        roundsUntilMoodCheck--; // Decrement rounds counter
-    }
-}
-
-
-
 
 </script>
 
