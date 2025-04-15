@@ -1559,21 +1559,16 @@ function clearMetaQuestionListeners() {
 }
 
 function maybeSwitchSides() {
-  if (currentTrial === nextSwitchTrial) {
-    console.log("🔄 Switching sides at trial", currentTrial);
-
-    // Swap the two players
-    if (selectedOthers.length === 2) {
-      selectedOthers = [selectedOthers[1], selectedOthers[0]];
-    }
-
-    arrangeSelectedPlayersRandomly(); // reposition them on screen
-    assignRewardingAndPunishingPlayers(); // reassign roles if needed
-
-    nextSwitchTrial = currentTrial + getRandomInt(5, 10); // 🎯 set new random switch point
-    console.log("🔁 Next switch trial set to", nextSwitchTrial);
+  if (Math.random() < 0.5) {
+    console.log("🎲 Switching sides this trial!");
+    [selectedOthers[0], selectedOthers[1]] = [selectedOthers[1], selectedOthers[0]]; // swap
+    arrangeSelectedPlayersRandomly(); // re-position them on the screen
+    assignRewardingAndPunishingPlayers(); // reassign roles based on new sides
+  } else {
+    console.log("✅ Keeping player positions this trial.");
   }
 }
+
 
 let metaQuestionCount = 0; // Counts the number of meta questions
 let metaTimeoutRef; // Declare globally to store timeout reference
@@ -1700,7 +1695,7 @@ function promptMoodCheck(callback) {
 
   moodContainer.style.display = 'block';
 
-  safePromptManager.start("mood", 5000, () => {
+  safePromptManager.start("mood", 7000, () => {
     if (safePromptManager.isActive("mood")) {
       showSpeechBubble("Zu langsam!", 1000);
       moodContainer.style.display = 'none';
