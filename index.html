@@ -258,6 +258,7 @@
     max-width: 200px;
     text-align: center;
     display: none;
+    opacity: 1;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 1002;
 }
@@ -421,7 +422,7 @@
     <div id="instructionContainer" class = "instructionContainer">
         <div class="instruction-content hidden" id="page1">
             <h1>Willkommen zum Ballwurf Spiel</h1>
-            <p>Bevor es losgeht, zeige ich Dir, wie das Spiel funktioniert. Du darfst dich erstmal zurücklehnen und zuschauen.<br>Bitte achte darauf, dass der Ton eingeschaltet ist.<br> Los geht's!</p>
+            <p>Bevor es losgeht, zeige ich Dir, wie das Spiel funktioniert. Du darfst Dich erstmal zurücklehnen und zuschauen.<br>Bitte achte darauf, dass der Ton eingeschaltet ist.<br> Los geht's!</p>
             <audio id="audio1" src="audio1.m4a"></audio>
         </div>
  <!-- Button to unlock audio -->
@@ -451,7 +452,7 @@
         <button id="nextButton4"class="button hidden">Weiter</button>
 
         <div class="instruction-content hidden" id="page5">
-            <h1>Zusammenfassung </h1>Ich treffe zwei Leute im Park und überlege, ob ich mit ihnen spielen möchte. Wenn ja, muss ich mich entscheiden welchen der beiden Spieler ich frage. <br> Entweder bekomme ich eine positive Antwort und darf mitspielen oder ich werde abgelehnt und bin vorerst vom Spiel ausgeschlossen. <br> Wenn ich mich entscheide nicht mitzuspielen, muss ich einige Runden aussetzen.</p>
+            <h1>Zusammenfassung </h1>Du triffst zwei Leute im Park und überlegst, ob Du mit ihnen spielen möchtest. Wenn ja, musst Du dich entscheiden welchen der beiden Spieler Du fragst. <br> Entweder bekommst Du eine positive Antwort und darfst mitspielen oder Du wirst abgelehnt und bist vorerst vom Spiel ausgeschlossen. <br> Wenn Du Dich entscheidest nicht mitzuspielen, musst Du einige Runden aussetzen.</p>
             <p>
             <audio id="audio3" src="audio3.m4a"></audio>
         </div>
@@ -460,15 +461,15 @@
 
     <div class="instruction-content hidden" id="page6">
         <h1>Fragen?</h1>
-        <p>Ist mir noch etwas unklar? Dann kann ich jetzt meinen Versuchsleiter fragen.<br>Ansonsten kann es losgehen!</p>
+        <p>Ist Dir noch etwas unklar? Dann kannst Du jetzt Deinen Versuchsleiter fragen.<br>Ansonsten kann es losgehen!</p>
         <audio id="audio4" src="audio4.m4a"></audio>
     </div>
 
     <div class="instruction-content hidden" id="page7">
-        <h2>Wähle deine Spieler</h2>
+        <h2>Wähle Deine Spieler</h2>
         <div class="availablePlayers">
-            <p>Jetzt kann ich mir meine Spieler aussuchen: Zuerst, wer ich sein möchte, <br> dann meine Mitspieler.<br>
-            Ich muss genau 3 Spieler auswählen.</p>
+            <p>Jetzt kannst Du dir Deine Spieler aussuchen: Zuerst, wer Du sein möchtest, <br> dann Deine Mitspieler.<br>
+            Du musst genau 3 Spieler auswählen.</p>
             <audio id ="audio2" src="audio2.m4a"></audio>
             <div id="availablePlayers">
                 <div id="availablePlayers">
@@ -532,13 +533,13 @@
     
 
     <div class="sliderContainer" id="moodContainer">
-        <h2>Wie geht es mir gerade?</h2>
+        <h2>Wie geht es Dir gerade?</h2>
         
         <label for="mood">Stimmung (-50 = sehr schlecht, 50 = sehr gut)</label>
         <input type="range" id="mood" name="mood" min="-50" max="50" value="0">
         <span id="mood-value">0</span>
         
-        <h3>Wie aufgeregt bin ich gerade?</h3>
+        <h3>Wie aufgeregt bist Du gerade?</h3>
         <label for="excitement">Aufgeregtheit (0 = gar nicht aufgeregt, 100 = sehr aufgeregt)</label>
         <input type="range" id="excitement" name="excitement" min="0" max="100" value="50">
         <span id="excitement-value">50</span>
@@ -642,6 +643,7 @@
     const totalPages = 7;
     const maxothers = 2;
     const ball = document.getElementById('ball');
+
     let selectedSelf = null;
     let selectedOthers = [];
     let chosenPlayers = { self: null, others: [] };
@@ -653,6 +655,8 @@
     let gameStarted = false;
     let choiceTimeout;
     let currentTrial = 0;
+    let nextSwitchTrial = getRandomInt(4, 8);  // first switch after 4–8 meta questions
+
     const animationVideo = document.getElementById('animation-video');
     const totalTrials = 144; 
     const minRoundsBeforeMoodCheck = 3;
@@ -783,34 +787,59 @@ const page1 = document.getElementById('page1');
 
   // ========== showPage FUNCTION ==========
   function showPage(pageNumber) {
-  // Loop through all pages and hide those not equal to pageNumber.
   for (let i = 1; i <= totalPages; i++) {
-    const pageEl  = document.getElementById(`page${i}`);
+    const pageEl = document.getElementById(`page${i}`);
     const nextBtn = document.getElementById(`nextButton${i}`);
     if (!pageEl) continue;
 
     if (i === pageNumber) {
       pageEl.classList.remove('hidden');
       pageEl.style.display = 'block';
-      
-      // Disable the continue button by default.
+
       if (nextBtn) {
         nextBtn.classList.remove('hidden');
         nextBtn.style.display = 'inline-block';
-        nextBtn.disabled = false; // default to enabled if no audio
+        nextBtn.disabled = false;
       }
-      
-      // For page 7, show the game start button instead.
+
+      // === Page 7 logic starts here ===
       if (i === 7) {
         startGameButtonPage7.classList.remove('hidden');
         startGameButtonPage7.style.display = 'inline-block';
-        startGameButtonPage7.disabled = false;
+        startGameButtonPage7.disabled = true; // start disabled
+
+        let audioFinished = false;
+        let playersSelected = selectedSelf && selectedOthers.length === 2;
+
+        function checkReadyToStart() {
+          if (audioFinished && playersSelected) {
+            startGameButtonPage7.disabled = false;
+          }
+        }
+
+        // Check again when players are (re)selected
+        document.querySelectorAll('#availablePlayers .player-image').forEach(image => {
+          image.addEventListener('click', function () {
+            playersSelected = selectedSelf && selectedOthers.length === 2;
+            checkReadyToStart();
+          });
+        });
+
+        // Wait for audio2 to finish
+        audio2.currentTime = 0;
+        audio2.play().catch(err => console.log("Audio2 blocked:", err));
+        audio2.addEventListener('ended', () => {
+          audioFinished = true;
+          checkReadyToStart();
+        }, { once: true });
+
       } else {
+        // Hide the start button if it's not page 7
         startGameButtonPage7.classList.add('hidden');
         startGameButtonPage7.style.display = 'none';
       }
-      
-      // If the page has an associated audio, disable continue until it finishes.
+
+      // Audio blocking on earlier pages
       if (pageNumber === 1) {
         nextButton1.disabled = true;
         audio1.currentTime = 0;
@@ -832,18 +861,8 @@ const page1 = document.getElementById('page1');
         audio4.addEventListener('ended', () => {
           nextButton6.disabled = false;
         }, { once: true });
-      } else if (pageNumber === 7) {
-        // For page 7, disable the "Spiel starten" button until audio finishes.
-        startGameButtonPage7.disabled = true;
-        audio2.currentTime = 0;
-        audio2.play().catch(err => console.log("Audio2 blocked:", err));
-        audio2.addEventListener('ended', () => {
-          startGameButtonPage7.disabled = false;
-        }, { once: true });
       }
-      
-      // If you have videos or pages without audio, you can handle them accordingly.
-      // For example, pages 2-4 can trigger fullscreen video playback.
+
       if (pageNumber === 2) {
         requestVideoFullscreen(video1);
       } else if (pageNumber === 3) {
@@ -1046,14 +1065,14 @@ function setPosition(playerId, position, image = null) {
 }
 
 
-// Shuffle left and right players after a defined number of trials
-function shufflePositions() {
-    if (selectedOthers.length < 2) return;
-
-    // Swap left and right players
-    [selectedOthers[0], selectedOthers[1]] = [selectedOthers[1], selectedOthers[0]];
-    arrangeSelectedPlayers(); // Rearrange positions
+function shuffleSelectedOthers() {
+    if (selectedOthers.length === 2) {
+        if (Math.random() < 0.5) {
+            selectedOthers = [selectedOthers[1], selectedOthers[0]];
+        }
+    }
 }
+
 
 
 function getPlayerPosition(playerId) {
@@ -1069,24 +1088,77 @@ function getPlayerPosition(playerId) {
     return null;
 }
 
-let currentPlayerIndex = 0; // Initialize it to 0 or another value
+const safePromptManager = {
+  activePrompt: null,
+  timeoutId: null,
 
-function showSpeechBubble(message, duration = 2000) {
-    const speechBubble = document.getElementById('speechBubble');
-    if (!speechBubble) {
-        console.error("Speech bubble element not found!");
-        return;
+  start(promptId, timeoutDuration, onTimeout) {
+    this.clear();
+    this.activePrompt = promptId;
+
+    const el = document.getElementById(promptId);
+    if (el) el.style.display = 'block';
+
+    this.timeoutId = setTimeout(() => {
+      if (this.activePrompt === promptId) {
+        onTimeout();
+        this.hide(promptId);
+      }
+    }, timeoutDuration);
+  },
+
+  hide(promptId = this.activePrompt) {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
     }
-    speechBubble.textContent = message;
-    // Temporarily center the speech bubble for debugging:
-    speechBubble.style.left = '50%';
-    speechBubble.style.top = '50%';
-    speechBubble.style.transform = 'translate(-50%, -50%)';
-    speechBubble.style.display = 'block';
+
+    if (promptId) {
+      const el = document.getElementById(promptId);
+      if (el) el.style.display = 'none';
+    }
+
+    this.activePrompt = null;
+  },
+
+  clear() {
+    this.hide(); // hides + clears timeout
+  },
+
+  isActive(promptId) {
+    return this.activePrompt === promptId;
+  },
+
+  show(promptId) {
+    const el = document.getElementById(promptId);
+    if (el) el.style.display = 'block';
+  }
+};
+
+let currentPlayerIndex = 0; // Initialize it to 0 or another value
+function showSpeechBubble(message, duration = 2000) {
+  if (message === "Zu langsam!") {
+    console.trace("🔍 'Zu langsam!' called from:");
+  }
+  const speechBubble = document.getElementById('speechBubble');
+  if (!speechBubble) return;
+
+  speechBubble.textContent = message;
+  speechBubble.style.display = 'block';
+  speechBubble.style.opacity = '1';
+  speechBubble.style.zIndex = '2000'; // Ensure it's above other stuff
+  speechBubble.style.left = '50%';
+  speechBubble.style.top = '50%';
+  speechBubble.style.transform = 'translate(-50%, -50%)';
+
+  setTimeout(() => {
+    speechBubble.style.opacity = '0';
     setTimeout(() => {
-        speechBubble.style.display = 'none';
-    }, duration);
+      speechBubble.style.display = 'none';
+    }, 500);
+  }, duration);
 }
+
 
 // Ensure `selectedOthers` has exactly two players before starting the game
 function startGame() {
@@ -1106,6 +1178,7 @@ function startGame() {
     console.log("Starting game with self-player:", selectedSelf);
     console.log("Selected other players:", selectedOthers);
 
+    shuffleSelectedOthers();
     arrangeSelectedPlayersRandomly();
     assignRewardingAndPunishingPlayers();
     currentPlayerId = selectedOthers[0]; // Start with the first other player
@@ -1485,77 +1558,129 @@ function clearMetaQuestionListeners() {
     noButton.parentNode.replaceChild(newNoButton, noButton);
 }
 
+function maybeSwitchSides() {
+  if (currentTrial === nextSwitchTrial) {
+    console.log("🔄 Switching sides at trial", currentTrial);
 
-let metaQuestionCount = 0; // Counts the number of meta questions
+    // Swap the two players
+    if (selectedOthers.length === 2) {
+      selectedOthers = [selectedOthers[1], selectedOthers[0]];
+    }
 
+    arrangeSelectedPlayersRandomly(); // reposition them on screen
+    assignRewardingAndPunishingPlayers(); // reassign roles if needed
 
-function showMetaQuestion() {
-  // Pause the game so nothing runs while the meta question is active.
-  pauseGame();
-  const metaContainer = document.getElementById('metaQuestionContainer');
-  metaContainer.style.display = 'block';
-
-  // Clear any previous meta question event listeners.
-  clearMetaQuestionListeners();
-
-  const yesBtn = document.getElementById('continueYes');
-  const noBtn  = document.getElementById('continueNo');
-
-  // Set a timeout for the meta question (e.g., 7 seconds)
-  const metaTimeout = setTimeout(() => {
-    // Show "Zu langsam!" for 2 seconds.
-    showSpeechBubble("Zu langsam!", 2000);
-    metaContainer.style.display = 'none';
-    console.log("Meta question timed out. Skipping trial.");
-    // Wait until the speech bubble has been shown before starting tosses.
-    setTimeout(() => {
-      startTossBetweenOthers(2, () => {
-        // After tosses are done, re–ask the meta question for a new trial.
-        showMetaQuestion();
-        incrementMetaQuestionCount();
-      });
-    }, 2000);
-  }, 10000);
-
-  yesBtn.addEventListener('click', () => {
-  clearTimeout(metaTimeout);
-  metaContainer.style.display = 'none';
-  console.log("Meta question answered: Yes");
-  // Increment the meta question count for this trial
-  incrementMetaQuestionCount();
-  // Then proceed with the desired action, e.g. promptPlayerChoice()
-  promptPlayerChoice();
-}, { once: true });
-
-noBtn.addEventListener('click', () => {
-  clearTimeout(metaTimeout);
-  metaContainer.style.display = 'none';
-  console.log("Meta question answered: No");
-  // Increment the meta question count for this trial
-  incrementMetaQuestionCount();
-  // Then proceed (e.g. start tosses between others)
-  startTossBetweenOthers(4, () => {
-    showMetaQuestion();
-  });
-}, { once: true });
+    nextSwitchTrial = currentTrial + getRandomInt(5, 10); // 🎯 set new random switch point
+    console.log("🔁 Next switch trial set to", nextSwitchTrial);
+  }
 }
 
-function incrementMetaQuestionCount() { 
-  metaQuestionCount++;
-  console.log("Meta Question Count:", metaQuestionCount, "Threshold:", roundsUntilMoodCheck);
+let metaQuestionCount = 0; // Counts the number of meta questions
+let metaTimeoutRef; // Declare globally to store timeout reference
 
-  if (metaQuestionCount >= roundsUntilMoodCheck) {
-    console.log("Triggering mood check...");
-    metaQuestionCount = 0; // Reset counter
-    promptMoodCheck(() => {
-  console.log("Mood check completed. Preparing meta question...");
-  // Ensure any previous meta question prompt is hidden:
-  document.getElementById('metaQuestionContainer').style.display = 'none';
-  roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
-  showMetaQuestion();
-  
-});
+function showMetaQuestion() {
+  pauseGame();
+  clearMetaQuestionListeners();
+
+  const metaContainer = document.getElementById('metaQuestionContainer');
+  const yesBtn = document.getElementById('continueYes');
+  const noBtn = document.getElementById('continueNo');
+
+  setTimeout(() => {
+    // Make sure it's visible BEFORE the timeout starts
+    metaContainer.style.display = 'block';
+
+    // Use Safe Prompt Manager with 10s timeout
+    safePromptManager.start('metaQuestionContainer', 5000, () => {
+      metaContainer.style.display = 'none';
+      showSpeechBubble("Zu langsam!", 1000);
+      setTimeout(() => {
+        startTossBetweenOthers(2, () => {
+          showMetaQuestion();
+          incrementMetaQuestionCount();
+        });
+      }, 2000);
+    });
+
+    yesBtn.addEventListener('click', () => {
+      safePromptManager.hide(); // Stop timer
+      metaContainer.style.display = 'none';
+      maybeSwitchSides();
+      setTimeout(() => {
+        promptPlayerChoice();
+      }, 300);
+    }, { once: true });
+
+    noBtn.addEventListener('click', () => {
+      safePromptManager.hide(); // Stop timer
+      metaContainer.style.display = 'none';
+      maybeSwitchSides();
+
+      startTossBetweenOthers(4, () => {
+        if (metaQuestionCount >= roundsUntilMoodCheck) {
+          metaQuestionCount = 0;
+          roundsUntilMoodCheck = getRandomRoundsForMoodCheck();
+          promptMoodCheck(() => {
+            showMetaQuestion();
+          });
+        } else {
+          metaQuestionCount++;
+          currentTrial++;
+          showMetaQuestion();
+        }
+      });
+    }, { once: true });
+
+  }, 50); // Delay to ensure prompt is visible before timeout starts
+}
+
+
+function hideAllPromptsExcept(excludeId = '') {
+  const prompts = [
+    document.getElementById('metaQuestionContainer'),
+    document.getElementById('moodContainer'),
+    document.getElementById('speechBubble'),
+    document.querySelector('.choose-player')
+  ];
+
+  prompts.forEach(prompt => {
+    if (prompt && prompt.id !== excludeId) {
+      prompt.style.display = 'none';
+    }
+  });
+}
+
+function incrementMetaQuestionCount() {
+  metaQuestionCount++;
+  currentTrial++;
+
+  // ✅ SWITCH SIDES randomly at defined trial
+  if (currentTrial === nextSwitchTrial) {
+    console.log("🔁 Switching sides at trial", currentTrial);
+    shuffleSelectedOthers();               // Randomly flip the other players
+    arrangeSelectedPlayersRandomly();     // Visually reposition them
+    assignRewardingAndPunishingPlayers(); // Reassign roles
+    nextSwitchTrial += getRandomInt(6, 12); // Schedule next switch
   }
+
+  // ✅ Only prompt mood check IF needed — and wait until toss is done
+  if (metaQuestionCount >= roundsUntilMoodCheck) {
+    metaQuestionCount = 0; // Reset count
+    roundsUntilMoodCheck = getRandomRoundsForMoodCheck(); // Randomize next check
+
+    // Defer mood check call — caller should do it *after* tossBetweenOthers is finished
+    setTimeout(() => {
+      promptMoodCheck(() => {
+        showMetaQuestion(); // resume loop
+      });
+    }, 200);
+    return;
+  }
+
+  // Otherwise, just show next meta question (also after toss)
+  setTimeout(() => {
+    showMetaQuestion();
+  }, 200);
 }
 
 
@@ -1566,45 +1691,41 @@ function getRandomRoundsForMoodCheck() {
     return randomRounds;
 }
 
-function promptMoodCheck(callback) { 
+let moodCheckTimeoutRef = null; // global reference to clear timeout reliably
+
+function promptMoodCheck(callback) {
+  pauseGame();
   const moodContainer = document.getElementById('moodContainer');
-  moodContainer.style.display = 'block';
   const submitBtn = document.getElementById('submitRatings');
-  
-  // Pause the game and clear the toss interval.
-  gamePaused = true;
-  if (ballTossInterval) {
-    clearInterval(ballTossInterval);
-    ballTossInterval = null;
-  }
-  
-  // Set a timeout for mood check (10 seconds).
-  const moodCheckTimeout = setTimeout(() => {
-    showSpeechBubble("Zu langsam", 1000);
-    moodContainer.style.display = 'none';
-    // Do NOT set gamePaused = false here.
-    if (callback) {
-      callback();  // Callback should show the meta question.
-    } else {
-      showMetaQuestion();
+
+  moodContainer.style.display = 'block';
+
+  safePromptManager.start("mood", 5000, () => {
+    if (safePromptManager.isActive("mood")) {
+      showSpeechBubble("Zu langsam!", 1000);
+      moodContainer.style.display = 'none';
+      setTimeout(() => {
+        resumeGame();
+        if (callback) callback();
+      }, 1000);
     }
-  }, 10000);
-  
-  // When the user submits their ratings, clear the timeout and then invoke the callback.
+  });
+
   submitBtn.addEventListener('click', () => {
-    clearTimeout(moodCheckTimeout);
+    safePromptManager.clear();
     const mood = document.getElementById('mood').value;
     const excitement = document.getElementById('excitement').value;
+
     console.log("Mood Submitted:", { mood, excitement });
+
     moodContainer.style.display = 'none';
-    // Again, do NOT resume the game here.
-    if (callback) {
-      callback();
-    } else {
-      showMetaQuestion();
-    }
+    resumeGame();
+    if (callback) callback();
   }, { once: true });
 }
+
+
+
 
 
 function tossBallToCenter(callback) {
@@ -1627,63 +1748,54 @@ let choiceMade = false;
 let playerChoiceTimeout;
 
 function promptPlayerChoice() {
-  // Reset flags and pause the game so that no ball toss occurs during choice prompt.
+  console.log("⚠️ promptPlayerChoice called");
+
+  const metaContainer = document.getElementById('metaQuestionContainer');
+  if (metaContainer) {
+    metaContainer.style.display = 'none';
+  }
+
+  pauseGame();
   choiceMade = false;
   choicePromptActive = true;
-  pauseGame();
-  console.log("Prompting player choice. Game paused:", gamePaused, "Choice prompt active:", choicePromptActive);
 
   const speechBubble = document.getElementById('speechBubble');
   const selfPos = playerPositions[selectedSelf];
-  if (!selfPos) {
-    console.error("Self player position not found.");
-    return;
-  }
+  if (!selfPos) return;
 
-  // Position and display the speech bubble.
   speechBubble.style.left = `${selfPos.x + 50}px`;
   speechBubble.style.top = `${selfPos.y - 80}px`;
   speechBubble.textContent = "Wen will ich ansprechen?";
   speechBubble.style.display = 'block';
   speechBubble.style.opacity = '1';
 
-  // Set a timeout (e.g., 3 seconds) so that if no answer is made, show "Zu langsam!" for 1 second
-  playerChoiceTimeout = setTimeout(() => {
-    if (!choiceMade) {
+  safePromptManager.start("playerChoice", 3000, () => {
+    if (safePromptManager.isActive("playerChoice") && !choiceMade) {
       showSpeechBubble("Zu langsam!", 1000);
-      // After showing the bubble, wait a short time then re–ask the meta question (i.e. new trial)
       setTimeout(() => {
         hidePromptAndContinue();
       }, 1100);
     }
-  }, 3000);
+  });
 
-  // Attach click event listeners to each selectable player.
   selectedOthers.forEach(pid => {
     const elem = document.getElementById(pid);
     if (!elem) return;
     elem.style.pointerEvents = 'auto';
     elem.style.cursor = 'pointer';
     elem.addEventListener('click', function onPlayerClick() {
-      console.log(`Player ${pid} clicked.`);
       choiceMade = true;
-      clearTimeout(playerChoiceTimeout);
-      // Disable further interactions on selectable players.
+      safePromptManager.clear();
       selectedOthers.forEach(otherId => {
         const otherElem = document.getElementById(otherId);
-        if (otherElem) {
-          otherElem.style.pointerEvents = 'none';
-        }
+        if (otherElem) otherElem.style.pointerEvents = 'none';
       });
-      // Hide the speech bubble.
       speechBubble.style.opacity = '0';
       setTimeout(() => {
         speechBubble.style.display = 'none';
       }, 500);
-      // Mark prompt as finished and resume the game.
       choicePromptActive = false;
-      resumeGame();
-      // Process the chosen player.
+      startBallToss();
       handlePlayerChoice(pid);
     }, { once: true });
   });
@@ -1923,40 +2035,40 @@ function startOtherPlayersTossSequence(totalTosses) {
 
 
 function startTossBetweenOthers(tossCount, callback) {
-    console.log(`Starting ${tossCount} tosses between other players...`);
-    let currentToss = 0;
-    const playerA = selectedOthers[0];
-    const playerB = selectedOthers[1];
+  let currentToss = 0;
+  const playerA = selectedOthers[0];
+  const playerB = selectedOthers[1];
 
-    function toss() {
-        if (currentToss >= tossCount) {
-            console.log(`Completed ${tossCount} tosses.`);
-            if (callback) {
-                pauseGame(); 
-                callback();
-            }
-            return;
-        }
-        const fromPlayer = (currentToss % 2 === 0) ? playerA : playerB;
-        const toPlayer   = (currentToss % 2 === 0) ? playerB : playerA;
-        
-        const fromPos = playerPositions[fromPlayer];
-        const toPos   = playerPositions[toPlayer];
-        const directionTo   = getDirection(fromPos.x, toPos.x);
-        const directionFrom = getDirection(toPos.x, fromPos.x);
-
-        console.log(`Tossing ball from ${fromPlayer} to ${toPlayer}`);
-        animateBall(fromPos.x, fromPos.y, toPos.x, toPos.y, () => {
-            console.log(`Ball reached ${toPlayer}`);
-            playCatchAnimation(toPlayer, directionFrom, () => {
-                console.log(`Catch animation completed for ${toPlayer}`);
-                currentToss++;
-                toss();
-            });
-        });
+  function toss() {
+    if (currentToss >= tossCount) {
+      if (callback) {
+        pauseGame(); // Just in case
+        setTimeout(() => {
+          callback(); // ✅ THEN continue to show mood/meta check
+        }, 100); 
+      }
+      return;
     }
-    toss();
+
+    const fromPlayer = (currentToss % 2 === 0) ? playerA : playerB;
+    const toPlayer = (currentToss % 2 === 0) ? playerB : playerA;
+
+    const fromPos = playerPositions[fromPlayer];
+    const toPos = playerPositions[toPlayer];
+    const directionTo = getDirection(fromPos.x, toPos.x);
+    const directionFrom = getDirection(toPos.x, fromPos.x);
+
+    animateBall(fromPos.x, fromPos.y, toPos.x, toPos.y, () => {
+      playCatchAnimation(toPlayer, directionFrom, () => {
+        currentToss++;
+        toss();
+      });
+    });
+  }
+
+  toss(); // Start tossing
 }
+
 
 
 
